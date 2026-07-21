@@ -78,10 +78,10 @@ app.post('/api/ai/analyze-status', async (req, res) => {
     `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-1.5-flash',
       contents: prompt,
       config: {
-        systemInstruction: "Siz imkoniyati cheklangan (aqli zaif, Daun sindromi, autizm, daun) bolalar bilan ishlaydigan professional maktab-internati bolalar psixologi va oliy toifali pedagogisiz. Ota-onalarga farzandining holatiga mos iliq va xavotirsiz yo'l-yo'riq berasiz."
+        systemInstruction: { parts: [{ text: "Siz imkoniyati cheklangan (aqli zaif, Daun sindromi, autizm, daun) bolalar bilan ishlaydigan professional maktab-internati bolalar psixologi va oliy toifali pedagogisiz. Ota-onalarga farzandining holatiga mos iliq va xavotirsiz yo'l-yo'riq berasiz." }] }
       }
     });
 
@@ -152,10 +152,10 @@ app.post('/api/ai/chat', async (req, res) => {
     });
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-1.5-flash',
       contents: formattedContents,
       config: {
-        systemInstruction: systemInstruction,
+        systemInstruction: { parts: [{text: systemInstruction}] },
         temperature: 0.7
       }
     });
@@ -176,7 +176,7 @@ app.post('/api/ai/chat', async (req, res) => {
       reply = "Sensor yuklanish (ortiqcha shovqin, baland tovush, yorug‘lik) maxsus bolajonlarda bezovtalik keltirib chiqarishi mumkin. Bunday paytda uydagi sokin va tinch bo‘g‘inni 'shinam burchak' qilib bering (yumshoq yostiqlar va o‘yinchoqlar bilan). Uni quchoqlab, u bilan sokin nafas olish mashqini bajaring, yuzini ohista silang.";
     }
 
-    res.json({ reply });
+    res.json({ reply: reply + "\n\n[API Xatosi: " + (error as any).message + "]" });
   }
 });
 
@@ -202,7 +202,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[Yordamchi.uz] Full-Stack server running on http://0.0.0.0:${PORT}`);
+    console.log(`[Yordamchi.uz] Full-Stack server running on http://localhost:${PORT}`);
   });
 }
 

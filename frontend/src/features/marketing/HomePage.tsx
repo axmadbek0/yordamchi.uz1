@@ -24,6 +24,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import oligofreniyaImg from '../../images/Oligofreniya.jpg';
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -155,56 +156,34 @@ export function HomePage() {
               </div>
             </div>
 
-            {/* Visual element representing active application */}
-            <div className="lg:col-span-5 relative">
+            {/* Visual element representing 3D Image */}
+            <div className="lg:col-span-5 relative" style={{ perspective: '1000px' }}>
               <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.6 }}
-                className="bg-white/90 backdrop-blur-md rounded-3xl p-6 border border-primary/10 shadow-xl relative"
+                initial={{ rotateX: 15, rotateY: -15, scale: 0.9, opacity: 0 }}
+                animate={{ rotateX: 10, rotateY: -10, scale: 1, opacity: 1 }}
+                whileHover={{ rotateX: 5, rotateY: -5, scale: 1.02 }}
+                transition={{ duration: 0.8, type: 'spring' }}
+                className="bg-white rounded-[2rem] p-3 border border-primary/20 shadow-2xl relative"
+                style={{ transformStyle: 'preserve-3d' }}
               >
-                <div className="flex items-center justify-between border-b border-primary/5 pb-4 mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-coral text-white rounded-full p-2">
-                      <Sparkles className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-deep text-sm">Alijonov Sardor</h4>
-                      <p className="text-xs text-muted">Bugungi AI Hisoboti • 12-sonli Maktab</p>
-                    </div>
+                <img 
+                  src={oligofreniyaImg} 
+                  alt="Maxsus ta'lim" 
+                  className="w-full h-auto rounded-3xl object-cover shadow-inner"
+                />
+                
+                <motion.div 
+                  initial={{ translateZ: 0 }}
+                  animate={{ translateZ: 50 }}
+                  className="absolute -bottom-6 -left-6 bg-deep text-white rounded-2xl p-4 shadow-lg flex items-center gap-3 border border-white/10"
+                >
+                  <Clock className="w-8 h-8 text-coral animate-pulse" />
+                  <div>
+                    <p className="text-xs text-white/70 font-medium">Tezkor aloqa</p>
+                    <p className="text-sm font-bold">Har kuni 24/7 faol</p>
                   </div>
-                  <Badge variant="coral">Xursand 🌟</Badge>
-                </div>
-
-                <div className="flex flex-col gap-3">
-                  <div className="bg-bg/60 rounded-xl p-3 border border-primary/5">
-                    <span className="text-[10px] font-bold text-muted uppercase tracking-wider block mb-1">O‘qituvchi Izohi</span>
-                    <p className="text-xs text-ink italic leading-relaxed">
-                      "Sardor bugun rasm chizish darsida geometrik shakllarni juda faol bo‘yadi va yangi so‘zlar aytdi."
-                    </p>
-                  </div>
-
-                  <div className="bg-primary/5 rounded-xl p-3 border border-primary/10">
-                    <span className="text-[10px] font-bold text-primary uppercase tracking-wider block mb-1">AI Maslahat</span>
-                    <p className="text-xs text-deep leading-relaxed">
-                      "Bolada qo‘l motorikasi va nutq kombinatsiyasi o‘smoqda. Uyda birgalikda qum o‘yinlarini davom ettirishingiz va yangi so‘zlarni rag‘batlantirishingiz tavsiya etiladi."
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex justify-between items-center text-[10px] text-muted font-mono">
-                  <span>Hujjat raqami: #12-005</span>
-                  <span>Bugungi holat: Sog‘lom ✅</span>
-                </div>
+                </motion.div>
               </motion.div>
-
-              <div className="absolute -bottom-6 -left-6 bg-deep text-white rounded-2xl p-4 shadow-lg flex items-center gap-3 border border-white/10">
-                <Clock className="w-8 h-8 text-coral animate-pulse" />
-                <div>
-                  <p className="text-xs text-white/70 font-medium">Tezkor aloqa</p>
-                  <p className="text-sm font-bold">Har kuni 24/7 faol</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>

@@ -2,8 +2,35 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Yordamchi.uz</title>
+    <style>
+      /* Prevent bounce scroll, zooming, and text selection for a native Mini App feel */
+      html, body {
+        overscroll-behavior-y: none;
+        overscroll-behavior-x: none;
+        -webkit-overflow-scrolling: touch;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+        touch-action: pan-y;
+        overflow: hidden; /* We'll let the React #root handle the internal scrolling */
+      }
+      
+      /* Allow text selection in inputs and textareas */
+      input, textarea {
+        -webkit-user-select: auto;
+        user-select: auto;
+      }
+      
+      #root {
+        height: 100vh;
+        width: 100vw;
+        overflow-y: auto;
+        overscroll-behavior-y: none;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

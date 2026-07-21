@@ -22,6 +22,7 @@ import {
   Calendar,
   Activity,
   Award,
+  Video,
   Bell,
   Settings,
   HelpCircle
@@ -34,7 +35,7 @@ export function ParentDashboard() {
   const [studentReports, setStudentReports] = useState<DailyStatusEntry[]>([]);
 
   // Active view tab (dashboard or AI chat assistant)
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'chat'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'chat' | 'cameras'>('dashboard');
 
   // AI chat states
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
@@ -172,6 +173,15 @@ export function ParentDashboard() {
             <MessageSquare className="w-5 h-5 shrink-0" />
             <span className="font-semibold text-sm">AI Maslahatchi</span>
           </button>
+          <button
+            onClick={() => setActiveTab('cameras')}
+            className={`w-full flex items-center space-x-3 p-3 rounded-xl transition-all cursor-pointer text-left ${
+              activeTab === 'cameras' ? 'bg-[#1B6FA8] text-white font-medium shadow-md shadow-primary/25' : 'text-[#D3E6F5] hover:bg-[#1B6FA8]/20'
+            }`}
+          >
+            <Video className="w-5 h-5 shrink-0" />
+            <span className="font-semibold text-sm">Yotoqxona kuzatuvi</span>
+          </button>
         </nav>
         
         {/* Child Profile Widget inside Sidebar Bottom */}
@@ -228,7 +238,7 @@ export function ParentDashboard() {
               activeTab === 'dashboard' ? 'bg-[#1B6FA8] text-white shadow-md' : 'text-muted'
             }`}
           >
-            <Activity className="w-4 h-4" /> Kundalik hisobot
+            <Activity className="w-4 h-4 hidden sm:block" /> Hisobot
           </button>
           <button
             onClick={() => setActiveTab('chat')}
@@ -236,7 +246,15 @@ export function ParentDashboard() {
               activeTab === 'chat' ? 'bg-[#1B6FA8] text-white shadow-md' : 'text-muted'
             }`}
           >
-            <MessageSquare className="w-4 h-4" /> AI Maslahatchi
+            <MessageSquare className="w-4 h-4 hidden sm:block" /> Maslahatchi
+          </button>
+          <button
+            onClick={() => setActiveTab('cameras')}
+            className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'cameras' ? 'bg-[#1B6FA8] text-white shadow-md' : 'text-muted'
+            }`}
+          >
+            <Video className="w-4 h-4 hidden sm:block" /> Kameralar
           </button>
         </div>
 
@@ -434,7 +452,6 @@ export function ParentDashboard() {
               <div ref={chatBottomRef} />
             </div>
 
-            {/* Chat Send Form */}
             <form onSubmit={handleSendChatMessage} className="p-3 border-t border-cardBlue/50 bg-white flex gap-2 shrink-0">
               <input
                 type="text"
@@ -448,6 +465,39 @@ export function ParentDashboard() {
                 <Send className="w-4 h-4" />
               </Button>
             </form>
+          </div>
+        )}
+
+        {/* Tab 3: Cameras View */}
+        {activeTab === 'cameras' && (
+          <div className="flex-1 flex flex-col gap-6 w-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[1, 2, 3, 4].map((camNum) => (
+                <div key={camNum} className="bg-white rounded-3xl border border-cardBlue overflow-hidden shadow-sm flex flex-col">
+                  <div className="bg-black relative aspect-video flex items-center justify-center">
+                    {/* Dummy camera feed */}
+                    <div className="absolute top-4 right-4 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                      <span className="text-white text-xs font-mono bg-black/50 px-2 py-1 rounded">LIVE</span>
+                    </div>
+                    <div className="absolute bottom-4 right-4">
+                      <span className="text-white/80 text-xs font-mono bg-black/50 px-2 py-1 rounded">
+                        {new Date().toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <Video className="w-12 h-12 text-white/20" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none"></div>
+                  </div>
+                  <div className="p-4 flex items-center justify-between bg-white border-t border-cardBlue/50">
+                    <div>
+                      <h4 className="font-bold text-deep text-sm">Kamera #{camNum}</h4>
+                      <p className="text-xs text-muted">Yotoqxona {camNum}-sektori</p>
+                    </div>
+                    <Badge variant="success" className="text-[10px] uppercase">Faol</Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </main>
