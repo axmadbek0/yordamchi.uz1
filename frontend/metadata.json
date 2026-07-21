@@ -1,0 +1,6 @@
+{
+  "name": "Yordamchi.uz",
+  "description": "Ijtimoiy himoyadagi maxsus ehtiyojli bolalar ota-onalarini va maktab-internat pedagoglarini bog‘lovchi, sun’iy intellekt tahlillari va professional maslahatlarga ega hamkorlik platformasi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
