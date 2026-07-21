@@ -98,7 +98,7 @@ export function HomePage() {
             <a href="#about" className="hover:text-primary transition-all">Biz haqimizda</a>
             <a href="#features" className="hover:text-primary transition-all">Imkoniyatlar</a>
             <a href="#how-it-works" className="hover:text-primary transition-all">Qanday ishlaydi?</a>
-            <a href="#pricing" className="hover:text-primary transition-all">Tariflar</a>
+            <a href="#team" className="hover:text-primary transition-all">Jamoa</a>
             <a href="#contact" className="hover:text-primary transition-all">Aloqa</a>
           </nav>
 
@@ -298,92 +298,54 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 bg-white">
+      {/* Team Section */}
+      <section id="team" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto flex flex-col gap-4 mb-16">
-            <Badge variant="primary" className="self-center">Tariflar</Badge>
+            <Badge variant="primary" className="self-center">Bizning Jamoa</Badge>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-deep font-serif">
-              Hamyonbop va bepul ulanish imkoniyatlari
+              Platforma yaratuvchilari
             </h2>
             <p className="text-base text-muted">
-              Davlat maktab-internatlari uchun alohida imtiyozlar va bepul sinov rejalari mavjud.
+              Ushbu loyiha maxsus ehtiyojli bolalarga yordam berish maqsadida o'z ishining mutaxassislari tomonidan ishlab chiqildi.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Plan 1 */}
-            <Card variant="white" className="flex flex-col justify-between p-8 border-t-4 border-t-primary/40">
-              <div className="flex flex-col gap-4">
-                <h4 className="text-lg font-bold text-deep">Maktab-Sinov</h4>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-deep">Bepul</span>
-                  <span className="text-sm text-muted">/ 1 oy</span>
-                </div>
-                <p className="text-xs text-muted">
-                  Yangi maktab-internatlar platforma bilan tanishishi uchun mo‘ljallangan sinov muddati.
-                </p>
-                <ul className="text-xs text-deep font-medium flex flex-col gap-2 mt-4">
-                  <li>• 1 ta o‘quvchilar sinfi</li>
-                  <li>• 30 tagacha o‘quvchi kiritish</li>
-                  <li>• Standard AI kunlik tahlillar</li>
-                  <li>• SMS jo‘natish (cheklov bilan)</li>
-                </ul>
+            {/* Team Member 1 */}
+            <Card variant="blue" className="flex flex-col items-center justify-center p-8 border-t-4 border-t-primary/40 text-center">
+              <div className="w-24 h-24 rounded-full bg-primary text-white flex items-center justify-center mb-4 text-3xl font-bold shadow-md shadow-primary/30">
+                MA
               </div>
-              <Button variant="outline" size="md" className="mt-8" onClick={() => navigate('/login')}>
-                Boshlash
-              </Button>
+              <h4 className="text-xl font-bold text-deep">Muxtorov Axmadbek</h4>
+              <Badge variant="primary" className="mt-2 mb-4">Platforma Asoschisi</Badge>
+              <p className="text-sm text-muted font-medium">
+                Frontend Dasturchi
+              </p>
             </Card>
 
-            {/* Plan 2 - Popular */}
-            <Card variant="blue" className="flex flex-col justify-between p-8 border-2 border-primary relative">
-              <div className="absolute top-4 right-4">
-                <Badge variant="coral">Tavsiya</Badge>
+            {/* Team Member 2 */}
+            <Card variant="white" className="flex flex-col items-center justify-center p-8 border-t-4 border-t-coral/40 text-center shadow-lg transform hover:-translate-y-2 transition-all">
+              <div className="w-24 h-24 rounded-full bg-coral text-white flex items-center justify-center mb-4 text-3xl font-bold shadow-md shadow-coral/30">
+                MO
               </div>
-              <div className="flex flex-col gap-4">
-                <h4 className="text-lg font-bold text-deep">Ixtisoslashtirilgan Maktab</h4>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-deep">Yillik</span>
-                  <span className="text-sm text-muted">/ Shartnoma</span>
-                </div>
-                <p className="text-xs text-muted">
-                  Barcha davlat va xususiy ixtisoslashtirilgan maktab-internatlar uchun to‘liq paket.
-                </p>
-                <ul className="text-xs text-deep font-bold flex flex-col gap-2 mt-4">
-                  <li>• Cheksiz sinflar va o‘quvchilar</li>
-                  <li>• AI doimiy tahlil va tavsiyalar</li>
-                  <li>• Ota-onalar bilan 24/7 AI maslahatchi</li>
-                  <li>• SMS va chop etish tizimi integratsiyasi</li>
-                  <li>• Texnik xizmat va ma’murlar mashg‘uloti</li>
-                </ul>
-              </div>
-              <a href="#contact" className="w-full">
-                <Button variant="primary" size="md" className="mt-8 w-full">
-                  Shartnoma tuzish
-                </Button>
-              </a>
+              <h4 className="text-xl font-bold text-deep">Madinabonu O'rmonova</h4>
+              <Badge variant="coral" className="mt-2 mb-4">Frontend Team</Badge>
+              <p className="text-sm text-muted font-medium">
+                Frontend Dasturchi
+              </p>
             </Card>
 
-            {/* Plan 3 */}
-            <Card variant="white" className="flex flex-col justify-between p-8 border-t-4 border-t-coral/40">
-              <div className="flex flex-col gap-4">
-                <h4 className="text-lg font-bold text-deep font-serif">Oila Rejasi</h4>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-deep">Ota-ona uchun</span>
-                </div>
-                <p className="text-xs text-muted">
-                  Maktab tizimga ulangan bo‘lsa, barcha ota-onalar uchun foydalanish mutlaqo BEPUL bo‘ladi.
-                </p>
-                <ul className="text-xs text-deep font-medium flex flex-col gap-2 mt-4">
-                  <li>• Farzand holatini 24/7 kuzatish</li>
-                  <li>• AI Report grafik tahlillari</li>
-                  <li>• AI pedagog-maslahatchi bilan cheksiz chat</li>
-                  <li>• Bildirishnomalar va tavsiyalar</li>
-                </ul>
+            {/* Team Member 3 */}
+            <Card variant="blue" className="flex flex-col items-center justify-center p-8 border-t-4 border-t-deep/40 text-center">
+              <div className="w-24 h-24 rounded-full bg-deep text-white flex items-center justify-center mb-4 text-3xl font-bold shadow-md shadow-deep/30">
+                FY
               </div>
-              <Button variant="secondary" size="md" className="mt-8" onClick={() => navigate('/login')}>
-                Kirish
-              </Button>
+              <h4 className="text-xl font-bold text-deep">Farruxjon Yusupov</h4>
+              <Badge variant="primary" className="mt-2 mb-4 bg-deep text-white">Backend Team</Badge>
+              <p className="text-sm text-muted font-medium">
+                Backend Dasturchi
+              </p>
             </Card>
           </div>
         </div>
