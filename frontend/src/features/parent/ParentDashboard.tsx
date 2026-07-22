@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/auth';
 import { getStudents, getReportsForStudent } from '../../lib/db';
 import { Student, DailyStatusEntry, ChatMessage } from '../../types';
@@ -28,11 +29,19 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useChatContext } from '../../components/ai-chat/ChatContext';
 
 export function ParentDashboard() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const { setContextInfo } = useChatContext();
   const [student, setStudent] = useState<Student | null>(null);
   const [studentReports, setStudentReports] = useState<DailyStatusEntry[]>([]);
+
+  useEffect(() => {
+    setContextInfo('parent', '/parent/dashboard');
+  }, []);
+
 
   // Active view tab (dashboard or AI chat assistant)
   const [activeTab, setActiveTab] = useState<'dashboard' | 'chat' | 'cameras'>('dashboard');
@@ -182,17 +191,27 @@ export function ParentDashboard() {
             <Video className="w-5 h-5 shrink-0" />
             <span className="font-semibold text-sm">Yotoqxona kuzatuvi</span>
           </button>
+          <button
+            onClick={() => navigate('/parent/profile')}
+            className="w-full flex items-center space-x-3 p-3 rounded-xl transition-all cursor-pointer text-left text-[#D3E6F5] hover:bg-[#1B6FA8]/20"
+          >
+            <User className="w-5 h-5 shrink-0" />
+            <span className="font-semibold text-sm">Mening Profilim</span>
+          </button>
         </nav>
         
         {/* Child Profile Widget inside Sidebar Bottom */}
         {student && (
-          <div className="p-4 mx-4 mb-4 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-3 shrink-0">
+          <div
+            onClick={() => navigate('/parent/profile')}
+            className="p-4 mx-4 mb-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl flex items-center gap-3 shrink-0 cursor-pointer transition-colors"
+          >
             <div className="w-9 h-9 rounded-full bg-[#1B6FA8] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-inner">
               {student.fullName[0]}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-bold truncate text-white leading-tight">{student.fullName}</p>
-              <p className="text-[10px] text-[#D3E6F5] opacity-60 truncate">{student.className} o‘quvchisi</p>
+              <p className="text-[10px] text-[#D3E6F5] opacity-60 truncate">{student.className} o‘quvchisi • Profil →</p>
             </div>
           </div>
         )}
@@ -219,6 +238,12 @@ export function ParentDashboard() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate('/parent/profile')}
+            className="text-primary text-xs font-bold py-1.5 px-3 hover:bg-primary/5 rounded-lg flex items-center gap-1 cursor-pointer"
+          >
+            <User className="w-3.5 h-3.5" /> Profil
+          </button>
           <button
             onClick={logout}
             className="text-coral text-xs font-bold py-1.5 px-3 hover:bg-coral/5 rounded-lg flex items-center gap-1 cursor-pointer"

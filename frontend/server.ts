@@ -176,7 +176,7 @@ app.post('/api/ai/chat', async (req, res) => {
       reply = "Sensor yuklanish (ortiqcha shovqin, baland tovush, yorug‘lik) maxsus bolajonlarda bezovtalik keltirib chiqarishi mumkin. Bunday paytda uydagi sokin va tinch bo‘g‘inni 'shinam burchak' qilib bering (yumshoq yostiqlar va o‘yinchoqlar bilan). Uni quchoqlab, u bilan sokin nafas olish mashqini bajaring, yuzini ohista silang.";
     }
 
-    res.json({ reply: reply + "\n\n[API Xatosi: " + (error as any).message + "]" });
+    res.json({ reply: reply });
   }
 });
 

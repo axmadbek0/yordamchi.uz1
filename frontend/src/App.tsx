@@ -8,7 +8,11 @@ import { AuthProvider, useAuth } from './lib/auth';
 import { HomePage } from './features/marketing/HomePage';
 import { LoginPage } from './features/auth/LoginPage';
 import { TeacherDashboard } from './features/teacher/TeacherDashboard';
+import { TeacherProfile } from './features/teacher/TeacherProfile';
 import { ParentDashboard } from './features/parent/ParentDashboard';
+import { ParentProfile } from './features/parent/ParentProfile';
+import { ChatProvider } from './components/ai-chat/ChatContext';
+import { ChatWidget } from './components/ai-chat/ChatWidget';
 
 /**
  * Route guard component to check roles.
@@ -39,38 +43,59 @@ function ProtectedRoute({ children, allowedRole }: { children: React.ReactNode; 
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Public Marketing Route */}
-          <Route path="/" element={<HomePage />} />
+      <ChatProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Public Marketing Route */}
+            <Route path="/" element={<HomePage />} />
 
-          {/* Login Route */}
-          <Route path="/login" element={<LoginPage />} />
+            {/* Login Route */}
+            <Route path="/login" element={<LoginPage />} />
 
-          {/* Teacher Private Area */}
-          <Route
-            path="/teacher/dashboard"
-            element={
-              <ProtectedRoute allowedRole="teacher">
-                <TeacherDashboard />
-              </ProtectedRoute>
-            }
-          />
+            {/* Teacher Private Area */}
+            <Route
+              path="/teacher/dashboard"
+              element={
+                <ProtectedRoute allowedRole="teacher">
+                  <TeacherDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teacher/profile"
+              element={
+                <ProtectedRoute allowedRole="teacher">
+                  <TeacherProfile />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Parent Private Area */}
-          <Route
-            path="/parent/dashboard"
-            element={
-              <ProtectedRoute allowedRole="parent">
-                <ParentDashboard />
-              </ProtectedRoute>
-            }
-          />
+            {/* Parent Private Area */}
+            <Route
+              path="/parent/dashboard"
+              element={
+                <ProtectedRoute allowedRole="parent">
+                  <ParentDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/parent/profile"
+              element={
+                <ProtectedRoute allowedRole="parent">
+                  <ParentProfile />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Catch-all Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+            {/* Catch-all Fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+
+          {/* Global AI Chatbot FAB & Panel */}
+          <ChatWidget />
+        </BrowserRouter>
+      </ChatProvider>
     </AuthProvider>
   );
 }

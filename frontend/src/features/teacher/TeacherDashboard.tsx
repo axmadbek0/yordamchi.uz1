@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/auth';
 import { getStudents, saveStudent, saveDailyReport, getReports, analyzeReportWithAI } from '../../lib/db';
 import { generateParentCredentials } from '../../lib/generateCredentials';
@@ -31,12 +32,21 @@ import {
   Send,
   Sparkles,
   BarChart,
-  Calendar
+  Calendar,
+  User,
+  Video,
+  Camera,
+  Maximize2,
+  Volume2
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useChatContext } from '../../components/ai-chat/ChatContext';
+
 
 export function TeacherDashboard() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const { setContextInfo } = useChatContext();
   const [students, setStudents] = useState<Student[]>([]);
   const [reports, setReports] = useState<DailyStatusEntry[]>([]);
 
@@ -58,7 +68,8 @@ export function TeacherDashboard() {
   const [selectedHealth, setSelectedHealth] = useState<'sog‘lom' | 'yengil bezovta' | 'betob'>('sog‘lom');
   const [teacherNote, setTeacherNote] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'roster' | 'entry' | 'stats'>('roster');
+  const [activeTab, setActiveTab] = useState<'roster' | 'entry' | 'stats' | 'cameras'>('roster');
+
 
   useEffect(() => {
     setStudents(getStudents());
@@ -195,15 +206,34 @@ export function TeacherDashboard() {
             <BarChart className="w-5 h-5 shrink-0" />
             <span className="font-semibold text-sm">Sinf Hisoboti</span>
           </button>
+          <button
+            onClick={() => setActiveTab('cameras')}
+            className={`w-full flex items-center space-x-3 p-3 rounded-xl transition-all cursor-pointer text-left ${
+              activeTab === 'cameras' ? 'bg-[#1B6FA8] text-white font-medium shadow-md shadow-primary/25' : 'text-[#D3E6F5] hover:bg-[#1B6FA8]/20'
+            }`}
+          >
+            <Video className="w-5 h-5 shrink-0" />
+            <span className="font-semibold text-sm">Sinf Kamerasi</span>
+          </button>
+          <button
+            onClick={() => navigate('/teacher/profile')}
+            className="w-full flex items-center space-x-3 p-3 rounded-xl transition-all cursor-pointer text-left text-[#D3E6F5] hover:bg-[#1B6FA8]/20"
+          >
+            <User className="w-5 h-5 shrink-0" />
+            <span className="font-semibold text-sm">Mening Profilim</span>
+          </button>
         </nav>
         <div className="p-6 border-t border-[#D3E6F5]/10 flex flex-col gap-4">
-          <div className="flex items-center space-x-3 text-white">
+          <div
+            onClick={() => navigate('/teacher/profile')}
+            className="flex items-center space-x-3 text-white cursor-pointer hover:bg-white/5 p-1.5 rounded-xl transition-colors"
+          >
             <div className="w-10 h-10 bg-coral rounded-full flex items-center justify-center font-bold text-white uppercase shadow-md shadow-coral/25 shrink-0">
               {user?.displayName ? user.displayName.slice(0, 2) : 'O‘'}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold truncate leading-tight text-white">{user?.displayName || 'O‘qituvchi'}</p>
-              <p className="text-[10px] text-[#D3E6F5] opacity-60 truncate">Sinf rahbari</p>
+              <p className="text-[10px] text-[#D3E6F5] opacity-60 truncate">Sinf rahbari • Profil →</p>
             </div>
           </div>
           <button
@@ -228,6 +258,12 @@ export function TeacherDashboard() {
         </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={() => navigate('/teacher/profile')}
+            className="text-primary text-xs font-bold py-1.5 px-3 hover:bg-primary/5 rounded-lg flex items-center gap-1 cursor-pointer"
+          >
+            <User className="w-3.5 h-3.5" /> Profil
+          </button>
+          <button
             onClick={logout}
             className="text-coral text-xs font-bold py-1.5 px-3 hover:bg-coral/5 rounded-lg flex items-center gap-1 cursor-pointer"
           >
@@ -246,7 +282,7 @@ export function TeacherDashboard() {
               activeTab === 'roster' ? 'bg-primary text-white shadow-md' : 'text-muted'
             }`}
           >
-            <Users className="w-4 h-4" /> Mening sinfim
+            <Users className="w-4 h-4" /> Sinfim
           </button>
           <button
             onClick={() => setActiveTab('entry')}
@@ -264,6 +300,14 @@ export function TeacherDashboard() {
           >
             <BarChart className="w-4 h-4" /> Hisobot
           </button>
+          <button
+            onClick={() => setActiveTab('cameras')}
+            className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'cameras' ? 'bg-primary text-white shadow-md' : 'text-muted'
+            }`}
+          >
+            <Video className="w-4 h-4" /> Kamera
+          </button>
         </div>
 
         {/* Dynamic Section Header */}
@@ -273,11 +317,13 @@ export function TeacherDashboard() {
               {activeTab === 'roster' && 'Mening Sinfim'}
               {activeTab === 'entry' && 'Kunlik Qaydlar'}
               {activeTab === 'stats' && 'Sinf Bo‘yicha Hisobot'}
+              {activeTab === 'cameras' && 'Sinf Xonasi Kamerasi'}
             </h2>
             <p className="text-muted text-xs sm:text-sm mt-1">
               {activeTab === 'roster' && `Maktab №${user?.schoolNumber || 12} • Bugun ${students.length} nafar o‘quvchidan ${reports.filter(r => r.date === new Date().toISOString().split('T')[0]).length} tasida qayd etildi`}
               {activeTab === 'entry' && 'O‘quvchilarning dars davomidagi holatini kiritish va tahlil qilish bo‘limi'}
               {activeTab === 'stats' && 'Sinf faolligi va kunlik emotsional ko‘rsatkichlar tahlili'}
+              {activeTab === 'cameras' && 'Sinf xonasi va mashg\'ulot hududining real-vaqtdagi kuzatuv kameralari'}
             </p>
           </div>
           {activeTab === 'roster' && (
@@ -727,6 +773,101 @@ export function TeacherDashboard() {
                   </table>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Tab 4: Classroom Cameras View */}
+        {activeTab === 'cameras' && (
+          <div className="flex-1 flex flex-col gap-6 w-full">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 rounded-3xl border border-cardBlue shadow-xs">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-deep font-serif">Sinf Xonasi va Mashg'ulot Kamerasi</h3>
+                  <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Live Stream
+                  </span>
+                </div>
+                <p className="text-xs text-muted mt-1">
+                  №{user?.schoolNumber || 12}-sonli maktab • Sinf xonasidagi onlayn kuzatuv kameralari va mashg'ulot nazorati
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono font-bold bg-bg px-3 py-1.5 rounded-xl text-deep border border-primary/10">
+                  {new Date().toLocaleTimeString('uz-UZ')}
+                </span>
+              </div>
+            </div>
+
+            {/* Camera Feeds Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {[
+                { id: 1, name: "Doska va O'qituvchi Minbari", detail: "Sinf doskasi va asosiy o'quv maydoni" },
+                { id: 2, name: "O'quvchilar Mashg'ulot Stollari", detail: "Partalar va guruhli dars bajarish zonasi" },
+                { id: 3, name: "Sensor & Psixologik O'yin Burchagi", detail: "Yumshoq gilamcha va motorika jihozlari" },
+                { id: 4, name: "Kirish va Dam Olish Hududi", detail: "Sinfga kirish va kiyim almashtirish sohasi" },
+              ].map((cam) => (
+                <div key={cam.id} className="bg-white rounded-3xl border border-cardBlue overflow-hidden shadow-sm flex flex-col group">
+                  <div className="bg-slate-950 relative aspect-video flex items-center justify-center">
+                    {/* LIVE Badge */}
+                    <div className="absolute top-4 right-4 flex items-center gap-2 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/10">
+                      <span className="w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
+                      <span className="text-white text-[10px] font-mono font-bold tracking-wider">LIVE 1080p</span>
+                    </div>
+
+                    <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-full text-white/90 text-xs font-bold font-serif">
+                      Kamera #{cam.id}
+                    </div>
+
+                    {/* Video Placeholder Content */}
+                    <div className="text-center p-6 space-y-3">
+                      <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-white/40 group-hover:scale-110 transition-transform">
+                        <Video className="w-8 h-8" />
+                      </div>
+                      <p className="text-xs text-white/60 font-mono">Sinf stream oqimi faol kutilmoqda...</p>
+                    </div>
+
+                    {/* Control Bar overlay on camera stream bottom */}
+                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between bg-black/60 backdrop-blur-md px-3 py-2 rounded-2xl border border-white/10 text-white text-xs">
+                      <span className="text-[11px] font-medium text-white/80">{cam.name}</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => alert(`Kamera #${cam.id} ovozi yoqildi`)}
+                          className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                          title="Ovozni eshitish"
+                        >
+                          <Volume2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => alert(`Kamera #${cam.id} rasmga olindi`)}
+                          className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                          title="Foto snapshot olish"
+                        >
+                          <Camera className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => alert(`Kamera #${cam.id} to'liq ekranga o'tkazildi`)}
+                          className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                          title="To'liq ekranga yoyish"
+                        >
+                          <Maximize2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 flex items-center justify-between bg-white border-t border-cardBlue/50">
+                    <div>
+                      <h4 className="font-bold text-deep text-sm">{cam.name}</h4>
+                      <p className="text-xs text-muted">{cam.detail}</p>
+                    </div>
+                    <Badge variant="success" className="text-[10px] uppercase font-bold">Faol</Badge>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
