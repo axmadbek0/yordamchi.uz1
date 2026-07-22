@@ -8,6 +8,7 @@ import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
+import { Modal } from '../../components/ui/Modal';
 import {
   Bell,
   Languages,
@@ -17,10 +18,13 @@ import {
   RefreshCw,
   Save,
   Check,
+  Trash2,
+  ShieldAlert,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { getAdminSettings, saveAdminSettings } from '../../lib/adminDb';
 import type { AdminSettingsData } from '../../types';
+import { useNavigate } from 'react-router-dom';
 
 type LoadState = 'loading' | 'success' | 'error';
 
@@ -58,6 +62,11 @@ export function AdminSettings() {
   const [state, setState] = useState<LoadState>('loading');
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  
+  const [showClearModal, setShowClearModal] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const navigate = useNavigate();
 
   const loadData = () => {
     setState('loading');
@@ -83,6 +92,27 @@ export function AdminSettings() {
     setIsSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
+  };
+
+  const handleClearData = () => {
+    if (confirmPassword === 'YordamchiResetSecurePassword2026!') {
+      // Clear localStorage to empty arrays (so they don't re-seed on next load)
+      localStorage.setItem('yordamchi_students', JSON.stringify([]));
+      localStorage.setItem('yordamchi_reports', JSON.stringify([]));
+      localStorage.setItem('yordamchi_admin_schools', JSON.stringify([]));
+      localStorage.setItem('yordamchi_admin_teachers', JSON.stringify([]));
+      localStorage.setItem('yordamchi_admin_billing', JSON.stringify([]));
+      localStorage.setItem('yordamchi_admin_user_payments', JSON.stringify([]));
+      
+      // Close modal and navigate to dashboard
+      setShowClearModal(false);
+      navigate('/admin/dashboard');
+      setTimeout(() => {
+        window.location.reload(); // Refresh to update all active views to 0/empty
+      }, 100);
+    } else {
+      setPasswordError('Xavfsizlik paroli noto‘g‘ri! Qayta urinib ko‘ring.');
+    }
   };
 
   const updateNotification = (key: keyof AdminSettingsData['notifications'], value: boolean) => {
@@ -235,6 +265,79 @@ export function AdminSettings() {
           </div>
         </Card>
       </motion.div>
+
+      {/* Ma'lumotlarni tozalash (Clear Data) */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+        <Card variant="white" className="!p-6 border-2 border-rose-200 bg-rose-50/20">
+          <div className="flex items-center gap-2 mb-4">
+            <Trash2 className="w-5 h-5 text-rose-600" />
+            <h3 className="text-base font-bold text-rose-700">Ma'lumotlarni tozalash</h3>
+          </div>
+          <p className="text-sm text-rose-700/80 mb-4 max-w-xl">
+            Diqqat! Ushbu amal platformadagi barcha maktablar, o'qituvchilar, o'quvchilar, to'lov tarixi hamda sozlamalarni butunlay o'chirib tashlaydi. Ushbu amalni ortga qaytarib bo'lmaydi!
+          </p>
+          <Button
+            variant="coral"
+            className="!bg-rose-600 hover:!bg-rose-700 text-white"
+            onClick={() => {
+              setShowClearModal(true);
+              setConfirmPassword('');
+              setPasswordError('');
+            }}
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Barcha ma'lumotlarni o'chirish
+          </Button>
+        </Card>
+      </motion.div>
+
+      {/* Clear Confirmation Modal */}
+      <Modal
+        isOpen={showClearModal}
+        onClose={() => setShowClearModal(false)}
+        title="Barcha ma'lumotlarni o'chirish"
+      >
+        <div className="space-y-4">
+          <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex gap-3 text-sm text-rose-800">
+            <ShieldAlert className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
+            <div>
+              <p className="font-bold">Yuqori darajadagi xavfsizlik amali!</p>
+              <p className="mt-1">
+                Tizimni tozalash uchun maxsus xavfsizlik parolini kiriting. Bu amal barcha ma'lumotlarni o'chirib yuboradi.
+              </p>
+              <p className="mt-2 font-mono text-[11px] bg-rose-100 p-1.5 rounded text-rose-700">
+                Parol: <span className="select-all font-bold">YordamchiResetSecurePassword2026!</span>
+              </p>
+            </div>
+          </div>
+
+          <Input
+            label="Xavfsizlik paroli"
+            type="password"
+            placeholder="Parolni kiriting..."
+            value={confirmPassword}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              setPasswordError('');
+            }}
+            error={passwordError}
+          />
+
+          <div className="flex gap-3">
+            <Button variant="outline" className="flex-1" onClick={() => setShowClearModal(false)}>
+              Bekor qilish
+            </Button>
+            <Button
+              variant="coral"
+              className="flex-1 !bg-rose-600 hover:!bg-rose-700"
+              onClick={handleClearData}
+              disabled={!confirmPassword}
+            >
+              Tasdiqlash va o'chirish
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Sticky Save Button */}
       <div className="fixed bottom-0 left-[260px] right-0 bg-white/90 backdrop-blur-sm border-t border-primary/10 p-4 z-40">

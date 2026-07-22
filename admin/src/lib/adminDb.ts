@@ -641,6 +641,18 @@ export function updateUserPaymentStatus(id: string, status: UserPaymentRecord['s
 export function getPlatformStats(): PlatformStats {
   const schools = getSchools();
   const teachers = getTeachers();
+  if (schools.length === 0) {
+    return {
+      totalSchools: 0,
+      totalTeachers: 0,
+      totalStudents: 0,
+      activeChatsToday: 0,
+      schoolsTrend: 0,
+      teachersTrend: 0,
+      studentsTrend: 0,
+      chatsTrend: 0,
+    };
+  }
   return {
     totalSchools: schools.length,
     totalTeachers: teachers.filter((t) => t.status === 'active').length,
@@ -658,6 +670,10 @@ export function getPlatformStats(): PlatformStats {
 // ==========================================
 
 export function getActivityFeed(): ActivityFeedItem[] {
+  const schools = getSchools();
+  if (schools.length === 0) {
+    return [];
+  }
   return [...SEED_ACTIVITY].sort(
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
@@ -700,6 +716,10 @@ export function getAttentionItems(): AttentionItem[] {
 // ==========================================
 
 export function getMonthlyGrowthData(): MonthlyGrowthData[] {
+  const schools = getSchools();
+  if (schools.length === 0) {
+    return [];
+  }
   return [
     { month: 'Yan', schools: 1, students: 15, teachers: 2 },
     { month: 'Fev', schools: 1, students: 22, teachers: 3 },
@@ -717,6 +737,10 @@ export function getMonthlyGrowthData(): MonthlyGrowthData[] {
 }
 
 export function getRegionData(): RegionData[] {
+  const schools = getSchools();
+  if (schools.length === 0) {
+    return [];
+  }
   return [
     { region: 'Toshkent shahri', count: 45, color: '#1B6FA8' },
     { region: 'Samarqand', count: 32, color: '#E8734A' },
@@ -728,6 +752,10 @@ export function getRegionData(): RegionData[] {
 }
 
 export function getTopSchools(): TopSchoolData[] {
+  const schools = getSchools();
+  if (schools.length === 0) {
+    return [];
+  }
   return [
     { id: 'sch-1', name: '12-sonli maktab-internat', number: 12, score: 92, studentCount: 45 },
     { id: 'sch-5', name: "18-sonli maktab-internat", number: 18, score: 87, studentCount: 38 },
@@ -738,6 +766,10 @@ export function getTopSchools(): TopSchoolData[] {
 }
 
 export function getWellbeingTrendData(): { month: string; score: number }[] {
+  const schools = getSchools();
+  if (schools.length === 0) {
+    return [];
+  }
   return [
     { month: 'Yan', score: 72 },
     { month: 'Fev', score: 74 },
