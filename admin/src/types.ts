@@ -99,6 +99,27 @@ export interface BillingRecord {
   plan: string;
 }
 
+export type PaymentStatus = 'completed' | 'pending' | 'overdue' | 'refunded';
+export type PaymentProvider = 'Click' | 'Payme' | 'Uzum Pay' | 'Karta (Uzcard/Humo)';
+
+export interface UserPaymentRecord {
+  id: string;
+  transactionId: string;
+  userName: string;
+  userRole: 'parent' | 'teacher' | 'school_admin';
+  userPhone: string;
+  studentName?: string;
+  schoolNumber?: number;
+  planName: string;
+  amount: number;
+  provider: PaymentProvider;
+  status: PaymentStatus;
+  paymentDate: string;
+  expiryDate: string;
+  cardNumberMasked?: string;
+}
+
+
 export interface PlatformStats {
   totalSchools: number;
   totalTeachers: number;

@@ -7,6 +7,7 @@ import {
   School,
   Teacher,
   BillingRecord,
+  UserPaymentRecord,
   PlatformStats,
   ActivityFeedItem,
   AttentionItem,
@@ -329,6 +330,120 @@ const SEED_BILLING: BillingRecord[] = [
   },
 ];
 
+const SEED_USER_PAYMENTS: UserPaymentRecord[] = [
+  {
+    id: 'upay-1',
+    transactionId: 'TRX-982410',
+    userName: 'Dilshoda Karimova',
+    userRole: 'parent',
+    userPhone: '+998 90 123 45 67',
+    studentName: 'Jasur Karimov (3-A)',
+    schoolNumber: 12,
+    planName: 'Ota-ona Premium (AI Maslahatchi + Oylik Tahlil)',
+    amount: 89000,
+    provider: 'Click',
+    status: 'completed',
+    paymentDate: '2026-07-22T09:14:00',
+    expiryDate: '2026-08-22',
+    cardNumberMasked: '8600 **** **** 4892',
+  },
+  {
+    id: 'upay-2',
+    transactionId: 'TRX-982411',
+    userName: 'Otabek Mirzayev',
+    userRole: 'parent',
+    userPhone: '+998 93 456 78 90',
+    studentName: 'Malika Mirzayeva (5-B)',
+    schoolNumber: 45,
+    planName: 'Individual AI Psixologik Yordam',
+    amount: 120000,
+    provider: 'Payme',
+    status: 'completed',
+    paymentDate: '2026-07-21T18:30:00',
+    expiryDate: '2026-08-21',
+    cardNumberMasked: '9860 **** **** 1204',
+  },
+  {
+    id: 'upay-3',
+    transactionId: 'TRX-982412',
+    userName: 'Nargiza Axmedova',
+    userRole: 'parent',
+    userPhone: '+998 97 888 11 22',
+    studentName: 'Sardor Axmedov (2-A)',
+    schoolNumber: 3,
+    planName: 'Ota-ona Standart Obuna',
+    amount: 49000,
+    provider: 'Uzum Pay',
+    status: 'overdue',
+    paymentDate: '2026-06-15T10:20:00',
+    expiryDate: '2026-07-15',
+    cardNumberMasked: '8600 **** **** 9931',
+  },
+  {
+    id: 'upay-4',
+    transactionId: 'TRX-982413',
+    userName: 'Rustam Qosimov',
+    userRole: 'parent',
+    userPhone: '+998 91 333 44 55',
+    studentName: 'Madina Qosimova (4-B)',
+    schoolNumber: 18,
+    planName: 'Pedagogik Rivojlantiruvchi Paket',
+    amount: 150000,
+    provider: 'Click',
+    status: 'completed',
+    paymentDate: '2026-07-20T14:45:00',
+    expiryDate: '2026-08-20',
+    cardNumberMasked: '8600 **** **** 7712',
+  },
+  {
+    id: 'upay-5',
+    transactionId: 'TRX-982414',
+    userName: 'Feruza Rashidova',
+    userRole: 'parent',
+    userPhone: '+998 94 666 77 88',
+    studentName: 'Azizbek Rashidov (1-A)',
+    schoolNumber: 12,
+    planName: 'Ota-ona Standart Obuna',
+    amount: 49000,
+    provider: 'Karta (Uzcard/Humo)',
+    status: 'pending',
+    paymentDate: '2026-07-22T12:05:00',
+    expiryDate: '2026-08-22',
+    cardNumberMasked: '5614 **** **** 3320',
+  },
+  {
+    id: 'upay-6',
+    transactionId: 'TRX-982415',
+    userName: 'Ulug\'bek Tursunov',
+    userRole: 'teacher',
+    userPhone: '+998 95 111 22 33',
+    schoolNumber: 18,
+    planName: 'O\'qituvchi Pro (Master AI Metodika)',
+    amount: 199000,
+    provider: 'Payme',
+    status: 'completed',
+    paymentDate: '2026-07-19T11:00:00',
+    expiryDate: '2026-08-19',
+    cardNumberMasked: '9860 **** **** 5541',
+  },
+  {
+    id: 'upay-7',
+    transactionId: 'TRX-982416',
+    userName: 'Shahnoza Umarova',
+    userRole: 'parent',
+    userPhone: '+998 99 777 99 00',
+    studentName: 'Amir Umarov (6-A)',
+    schoolNumber: 45,
+    planName: 'Ota-ona Premium (AI Maslahatchi + Oylik Tahlil)',
+    amount: 89000,
+    provider: 'Click',
+    status: 'refunded',
+    paymentDate: '2026-07-18T16:10:00',
+    expiryDate: '2026-07-19',
+    cardNumberMasked: '8600 **** **** 2291',
+  },
+];
+
 const SEED_ACTIVITY: ActivityFeedItem[] = [
   { id: 'act-1', message: "71-maktab yangi so'rov yubordi", timestamp: '2026-07-22T09:30:00', type: 'school' },
   { id: 'act-2', message: "12-maktab yangi o'qituvchi qo'shdi", timestamp: '2026-07-22T08:15:00', type: 'teacher' },
@@ -348,6 +463,7 @@ const KEYS = {
   schools: 'yordamchi_admin_schools',
   teachers: 'yordamchi_admin_teachers',
   billing: 'yordamchi_admin_billing',
+  userPayments: 'yordamchi_admin_user_payments',
   settings: 'yordamchi_admin_settings',
 };
 
@@ -361,7 +477,11 @@ function initAdminDB() {
   if (!localStorage.getItem(KEYS.billing)) {
     localStorage.setItem(KEYS.billing, JSON.stringify(SEED_BILLING));
   }
+  if (!localStorage.getItem(KEYS.userPayments)) {
+    localStorage.setItem(KEYS.userPayments, JSON.stringify(SEED_USER_PAYMENTS));
+  }
 }
+
 
 // ==========================================
 // Schools CRUD
@@ -485,6 +605,34 @@ export function getBillingRecords(): BillingRecord[] {
   initAdminDB();
   return JSON.parse(localStorage.getItem(KEYS.billing) || '[]');
 }
+
+export function getUserPayments(): UserPaymentRecord[] {
+  initAdminDB();
+  return JSON.parse(localStorage.getItem(KEYS.userPayments) || '[]');
+}
+
+export function addUserPayment(payment: Omit<UserPaymentRecord, 'id' | 'transactionId' | 'paymentDate'>): UserPaymentRecord {
+  const payments = getUserPayments();
+  const newPayment: UserPaymentRecord = {
+    ...payment,
+    id: `upay-${Date.now()}`,
+    transactionId: `TRX-${Math.floor(100000 + Math.random() * 900000)}`,
+    paymentDate: new Date().toISOString(),
+  };
+  payments.unshift(newPayment);
+  localStorage.setItem(KEYS.userPayments, JSON.stringify(payments));
+  return newPayment;
+}
+
+export function updateUserPaymentStatus(id: string, status: UserPaymentRecord['status']): UserPaymentRecord | undefined {
+  const payments = getUserPayments();
+  const idx = payments.findIndex((p) => p.id === id);
+  if (idx === -1) return undefined;
+  payments[idx].status = status;
+  localStorage.setItem(KEYS.userPayments, JSON.stringify(payments));
+  return payments[idx];
+}
+
 
 // ==========================================
 // Platform Stats
