@@ -75,7 +75,7 @@ export function AIReportChart({ entries, onSelectEntry }: AIReportChartProps) {
   };
 
   // Custom tool tip with no numbers
-  const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
+  const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const entry = payload[0].payload.entry as DailyStatusEntry;
       return (
