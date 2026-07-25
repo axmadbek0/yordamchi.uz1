@@ -51,7 +51,7 @@ export function ParentDashboard() {
     {
       id: 'm1',
       sender: 'ai',
-      text: "Salom! Men Yordamchi.uz sun'iy intellekt maslahatchisiman. Men sizga Daun sindromi, aqli zaiflik yoki boshqa maxsus ehtiyojli bolalar tarbiyasi, uy sharoitidagi mashg‘ulotlar va pedagogika bo‘yicha yordam bera olaman. Bugun sizga qanday ko‘mak bera olaman?",
+      text: "Salom! Men Yordamchi med sun'iy intellekt maslahatchisiman. Men sizga Daun sindromi, aqli zaiflik yoki boshqa maxsus ehtiyojli bolalar tarbiyasi, uy sharoitidagi mashg‘ulotlar va pedagogika bo‘yicha yordam bera olaman. Bugun sizga qanday ko‘mak bera olaman?",
       timestamp: new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -160,7 +160,7 @@ export function ParentDashboard() {
       {/* Sidebar Navigation for Desktop */}
       <aside className="w-64 bg-deep flex flex-col h-screen sticky top-0 shrink-0 text-[#D3E6F5] hidden md:flex z-20 shadow-xl border-r border-cardBlue/10">
         <div className="p-6">
-          <h1 className="text-white font-serif text-2xl italic tracking-tight">Yordamchi.uz</h1>
+          <h1 className="text-white font-serif text-2xl italic tracking-tight">Yordamchi <span className="text-red-500 text-sm">med</span></h1>
           <p className="text-[#D3E6F5] text-[10px] uppercase tracking-widest mt-1 opacity-70">Ota-ona Kabineti</p>
         </div>
         <nav className="flex-1 px-4 mt-6 space-y-2">
@@ -233,7 +233,7 @@ export function ParentDashboard() {
             <Heart className="w-4 h-4" fill="currentColor" />
           </div>
           <div>
-            <span className="text-sm font-black text-deep block leading-tight font-serif">YORDAMCHI.UZ</span>
+            <span className="text-sm font-black text-deep block leading-tight font-serif">YORDAMCHI <span className="text-red-500 text-[10px]">MED</span></span>
             <span className="text-[10px] text-muted">Ota-ona kabineti • Maktab №{user?.schoolNumber || 12}</span>
           </div>
         </div>

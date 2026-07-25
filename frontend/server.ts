@@ -6,7 +6,7 @@
 import express from 'express';
 import path from 'path';
 import dotenv from 'dotenv';
-import { GoogleGenAI } from '@google/genai';
+import Anthropic from '@anthropic-ai/sdk';
 import { createServer as createViteServer } from 'vite';
 
 // Load environment variables
@@ -17,25 +17,20 @@ const PORT = 3000;
 
 app.use(express.json());
 
-// Initialize Gemini API Client safely (Lazy Initialization)
-let geminiClient: GoogleGenAI | null = null;
+// Initialize Anthropic API Client safely (Lazy Initialization)
+let anthropicClient: Anthropic | null = null;
 
-function getGeminiClient(): GoogleGenAI {
-  if (!geminiClient) {
-    const apiKey = process.env.GEMINI_API_KEY;
+function getAnthropicClient(): Anthropic {
+  if (!anthropicClient) {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
-      console.warn("WARN: GEMINI_API_KEY environment variable is not set. Using mock fallbacks.");
+      console.warn("❌ Anthropic API Key is missing");
     }
-    geminiClient = new GoogleGenAI({
-      apiKey: apiKey || 'MOCK_KEY',
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        }
-      }
+    anthropicClient = new Anthropic({
+      apiKey: apiKey || 'cap-a601579679396122a397aded8d6919a5'
     });
   }
-  return geminiClient;
+  return anthropicClient;
 }
 
 // ==========================================
@@ -53,11 +48,10 @@ app.post('/api/ai/analyze-status', async (req, res) => {
   }
 
   try {
-    const ai = getGeminiClient();
-    const apiKey = process.env.GEMINI_API_KEY;
+    const ai = getAnthropicClient();
+    const apiKey = process.env.ANTHROPIC_API_KEY;
 
-    if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
-      // Return high-quality mock fallback if key is missing
+    if (!apiKey) {
       throw new Error("Missing API Key");
     }
 
@@ -77,15 +71,16 @@ app.post('/api/ai/analyze-status', async (req, res) => {
       5. Hisobot hajmi 3-4 gapdan oshmasin.
     `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
-      contents: prompt,
-      config: {
-        systemInstruction: { parts: [{ text: "Siz imkoniyati cheklangan (aqli zaif, Daun sindromi, autizm, daun) bolalar bilan ishlaydigan professional maktab-internati bolalar psixologi va oliy toifali pedagogisiz. Ota-onalarga farzandining holatiga mos iliq va xavotirsiz yo'l-yo'riq berasiz." }] }
-      }
+    const response = await ai.messages.create({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 1024,
+      system: "Siz imkoniyati cheklangan (aqli zaif, Daun sindromi, autizm, daun) bolalar bilan ishlaydigan professional maktab-internati bolalar psixologi va oliy toifali pedagogisiz. Ota-onalarga farzandining holatiga mos iliq va xavotirsiz yo'l-yo'riq berasiz.",
+      messages: [
+        { role: 'user', content: prompt }
+      ]
     });
 
-    const analysisText = response.text;
+    const analysisText = (response.content[0] as any).text || "";
     res.json({ analysis: analysisText });
 
   } catch (error) {
@@ -116,16 +111,16 @@ app.post('/api/ai/chat', async (req, res) => {
   }
 
   try {
-    const ai = getGeminiClient();
-    const apiKey = process.env.GEMINI_API_KEY;
+    const ai = getAnthropicClient();
+    const apiKey = process.env.ANTHROPIC_API_KEY;
 
-    if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
+    if (!apiKey) {
       throw new Error("Missing API Key");
     }
 
     // Prepare system instructions with context
     const systemInstruction = `
-      Siz "Yordamchi.uz" platformasining maxsus pedagogika, Daun sindromi, aqli zaiflik va bolalar psixologiyasi bo'yicha professional sun'iy intellekt maslahatchisiz.
+      Siz "Yordamchi med" platformasining maxsus pedagogika, Daun sindromi, aqli zaiflik va bolalar psixologiyasi bo'yicha professional sun'iy intellekt maslahatchisiz.
       Siz bilan muloqot qilayotgan shaxs - ${studentName || 'bola'} ismli bolaning ota-onasi (sinfi: ${studentClass || 'maxsus guruh'}).
       
       Talablar:
@@ -140,27 +135,26 @@ app.post('/api/ai/chat', async (req, res) => {
     let formattedContents: any[] = [];
     if (history && history.length > 0) {
       formattedContents = history.map((item: any) => ({
-        role: item.role === 'user' ? 'user' : 'model',
-        parts: [{ text: item.parts[0].text }]
+        role: item.role === 'user' ? 'user' : 'assistant',
+        content: item.parts[0].text
       }));
     }
 
     // Append current message
     formattedContents.push({
       role: 'user',
-      parts: [{ text: message }]
+      content: message
     });
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
-      contents: formattedContents,
-      config: {
-        systemInstruction: { parts: [{text: systemInstruction}] },
-        temperature: 0.7
-      }
+    const response = await ai.messages.create({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 1024,
+      system: systemInstruction,
+      temperature: 0.7,
+      messages: formattedContents
     });
 
-    res.json({ reply: response.text });
+    res.json({ reply: (response.content[0] as any).text || "" });
 
   } catch (error) {
     console.error("AI Chat error, using fallback template:", error);
@@ -202,7 +196,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[Yordamchi.uz] Full-Stack server running on http://localhost:${PORT}`);
+    console.log(`[Yordamchi med] Full-Stack server running on http://localhost:${PORT}`);
   });
 }
 

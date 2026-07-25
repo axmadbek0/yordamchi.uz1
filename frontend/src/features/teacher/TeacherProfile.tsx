@@ -49,7 +49,7 @@ export function TeacherProfile() {
   const [profileData, setProfileData] = useState({
     fullName: user?.displayName || 'Abdullayeva Nodira',
     phone: '+998 90 123 45 67',
-    email: 'nodira.teacher@yordamchi.uz',
+    email: 'nodira.teacher@yordamchi.med',
     birthDate: '1988-04-12',
     schoolName: `${user?.schoolNumber || 12}-sonli ixtisoslashtirilgan maktab`,
     className: '2-A sinf',
@@ -170,7 +170,7 @@ export function TeacherProfile() {
             {/* Trust Indicator */}
             <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-3">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-primary/8 text-primary text-xs font-semibold border border-primary/10">
-                <Award className="w-4 h-4 text-primary" /> Yordamchi.uz'da 3 oydan beri
+                <Award className="w-4 h-4 text-primary" /> Yordamchi med'da 3 oydan beri
               </span>
               <span className="text-xs text-muted">Oxirgi kirish: bugun, 09:14</span>
             </div>

@@ -90,7 +90,7 @@ export function HomePage() {
               <Heart className="w-6 h-6" fill="currentColor" />
             </div>
             <span className="text-xl font-black text-deep tracking-tight font-serif">
-              YORDAMCHI<span className="text-coral">.UZ</span>
+              YORDAMCHI <span className="text-red-500 text-sm lowercase">med</span>
             </span>
           </div>
 
@@ -198,7 +198,7 @@ export function HomePage() {
               Platformaning maqsadi va ijtimoiy missiyamiz
             </h2>
             <p className="text-lg text-muted leading-relaxed">
-              Yordamchi.uz maxsus pedagogik ta’lim tizimini raqamlashtirish va imkoniyati cheklangan bolalarning ota-onalariga daldalanish maqsadida tashkil etilgan. Biz murakkab klinik tahlillarni ota-onalarga iliq va tushunarli tarzda taqdim etib, uy va maktab o‘rtasida uzluksiz hamkorlikni ta’minlaymiz.
+              Yordamchi med maxsus pedagogik ta’lim tizimini raqamlashtirish va imkoniyati cheklangan bolalarning ota-onalariga daldalanish maqsadida tashkil etilgan. Biz murakkab klinik tahlillarni ota-onalarga iliq va tushunarli tarzda taqdim etib, uy va maktab o‘rtasida uzluksiz hamkorlikni ta’minlaymiz.
             </p>
           </div>
 
@@ -335,18 +335,6 @@ export function HomePage() {
                 Frontend Dasturchi
               </p>
             </Card>
-
-            {/* Team Member 3 */}
-            <Card variant="blue" className="flex flex-col items-center justify-center p-8 border-t-4 border-t-deep/40 text-center">
-              <div className="w-24 h-24 rounded-full bg-deep text-white flex items-center justify-center mb-4 text-3xl font-bold shadow-md shadow-deep/30">
-                FY
-              </div>
-              <h4 className="text-xl font-bold text-deep">Farruxjon Yusupov</h4>
-              <Badge variant="primary" className="mt-2 mb-4 bg-deep text-white">Backend Team</Badge>
-              <p className="text-sm text-muted font-medium">
-                Backend Dasturchi
-              </p>
-            </Card>
           </div>
         </div>
       </section>
@@ -375,7 +363,7 @@ export function HomePage() {
                   <div className="p-2 bg-white rounded-full text-coral shadow-sm">
                     <Mail className="w-5 h-5" />
                   </div>
-                  <span>info@yordamchi.uz</span>
+                  <span>info@yordamchi.med</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white rounded-full text-primary shadow-sm">
@@ -446,10 +434,10 @@ export function HomePage() {
               <Heart className="w-5 h-5" fill="currentColor" />
             </div>
             <span className="text-lg font-black text-white tracking-tight font-serif">
-              YORDAMCHI<span className="text-coral">.UZ</span>
+              YORDAMCHI <span className="text-red-500 text-sm lowercase">med</span>
             </span>
           </div>
-          <p>© 2026 Yordamchi.uz — barcha huquqlar himoyalangan. Maxsus ehtiyojli bolalar va oilalar yordamchisi.</p>
+          <p>© 2026 Yordamchi med — barcha huquqlar himoyalangan. Maxsus ehtiyojli bolalar va oilalar yordamchisi.</p>
           <div className="flex items-center gap-6">
             <a href="#about" className="hover:text-white transition-all">Biz haqimizda</a>
             <a href="#features" className="hover:text-white transition-all">Siyosat</a>

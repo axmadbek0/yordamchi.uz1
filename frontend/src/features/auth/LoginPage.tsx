@@ -94,7 +94,7 @@ export function LoginPage() {
               <Heart className="w-8 h-8 animate-pulse" fill="currentColor" />
             </div>
             <h1 className="text-2xl font-black text-deep font-serif">
-              YORDAMCHI<span className="text-coral">.UZ</span>
+              YORDAMCHI <span className="text-red-500 text-sm lowercase">med</span>
             </h1>
             <p className="text-sm text-muted">
               Ijtimoiy himoya va maktab-internat hamkorlik tizimi
@@ -209,7 +209,7 @@ export function LoginPage() {
 
       {/* Footer */}
       <footer className="p-4 text-center text-xs text-muted">
-        © 2026 Yordamchi.uz. Maxsus ehtiyojli bolalar va ularning ota-onalari uchun yordamchi platforma.
+        © 2026 Yordamchi med. Maxsus ehtiyojli bolalar va ularning ota-onalari uchun yordamchi platforma.
       </footer>
     </div>
   );

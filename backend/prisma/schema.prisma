@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+  PENDING
+}
+
+enum ChatType {
+  AI
+  SUPPORT
+}
+
+enum SenderType {
+  USER
+  AI
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(uuid())
+  full_name     String
+  email         String    @unique
+  password_hash String
+  role          Role      @default(USER)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  orders        Order[]
+  payments      Payment[]
+  chats         Chat[]
+}
+
+model Category {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  parent_id String?
+  parent    Category?  @relation("SubCategories", fields: [parent_id], references: [id])
+  children  Category[] @relation("SubCategories")
+  
+  products  Product[]
+}
+
+model Product {
+  id             String   @id @default(uuid())
+  name           String
+  description    String
+  price          Float
+  stock_quantity Int      @default(0)
+  images         String[]
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  category_id    String
+  category       Category @relation(fields: [category_id], references: [id])
+
+  order_items    OrderItem[]
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  total_price Float
+  status      OrderStatus @default(PENDING)
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+
+  user_id     String
+  user        User        @relation(fields: [user_id], references: [id])
+
+  items       OrderItem[]
+  payments    Payment[]
+}
+
+model OrderItem {
+  id                String  @id @default(uuid())
+  quantity          Int
+  price_at_purchase Float
+
+  order_id          String
+  order             Order   @relation(fields: [order_id], references: [id])
+
+  product_id        String
+  product           Product @relation(fields: [product_id], references: [id])
+}
+
+model Payment {
+  id             String        @id @default(uuid())
+  amount         Float
+  provider       String        // e.g. Stripe, Click, Payme
+  status         PaymentStatus @default(PENDING)
+  transaction_id String?
+
+  order_id       String
+  order          Order         @relation(fields: [order_id], references: [id])
+
+  user_id        String
+  user           User          @relation(fields: [user_id], references: [id])
+  
+  created_at     DateTime      @default(now())
+}
+
+model Chat {
+  id         String   @id @default(uuid())
+  type       ChatType @default(AI)
+  created_at DateTime @default(now())
+
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id])
+
+  messages   Message[]
+}
+
+model Message {
+  id          String     @id @default(uuid())
+  sender_type SenderType
+  content     String
+  created_at  DateTime   @default(now())
+
+  chat_id     String
+  chat        Chat       @relation(fields: [chat_id], references: [id])
+}
+
+model CameraLog {
+  id         String   @id @default(uuid())
+  camera_id  String
+  event_type String   // e.g. MOTION, ALERT
+  metadata   Json?
+  timestamp  DateTime @default(now())
+}

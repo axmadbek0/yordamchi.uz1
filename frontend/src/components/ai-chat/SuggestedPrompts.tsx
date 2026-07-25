@@ -46,7 +46,7 @@ export const SuggestedPrompts: React.FC<SuggestedPromptsProps> = ({
     }
 
     return [
-      "Yordamchi.uz imkoniyatlari nimadan iborat?",
+      "Yordamchi med imkoniyatlari nimadan iborat?",
       "Daun sindromli bolalar bilan qanday mashqlar bajariladi?",
       "Maktab-internati tizimi qanday ishlaydi?",
     ];

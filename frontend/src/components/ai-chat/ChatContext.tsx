@@ -1,5 +1,5 @@
 /**
- * AI Chat Context — Global State & Handler for Yordamchi.uz AI Assistant
+ * AI Chat Context — Global State & Handler for Yordamchi med AI Assistant
  */
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -37,7 +37,7 @@ const INITIAL_MESSAGES: Record<'teacher' | 'parent' | 'guest', ChatMessageItem[]
     {
       id: 'm-init-teacher',
       sender: 'ai',
-      text: "Salom, hurmatli o'qituvchi! Men Yordamchi.uz pedagogik AI yordamchisiman. O'quvchilar holatini yozish, ota-onalar bilan muloqot yoki metodik tavsiyalar bo'yicha qanday yordam bera olaman?",
+      text: "Salom, hurmatli o'qituvchi! Men Yordamchi med pedagogik AI yordamchisiman. O'quvchilar holatini yozish, ota-onalar bilan muloqot yoki metodik tavsiyalar bo'yicha qanday yordam bera olaman?",
       timestamp: new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }),
     },
   ],
@@ -45,7 +45,7 @@ const INITIAL_MESSAGES: Record<'teacher' | 'parent' | 'guest', ChatMessageItem[]
     {
       id: 'm-init-parent',
       sender: 'ai',
-      text: "Salom, aziz ota-ona! Men Yordamchi.uz sun'iy intellekt maslahatchisiman. Farzandingiz tarbiyasi, kunlik tahlillar, sensor mashqlar va rivojlantirish bo'yicha savollaringizga javob berishga tayyorman.",
+      text: "Salom, aziz ota-ona! Men Yordamchi med sun'iy intellekt maslahatchisiman. Farzandingiz tarbiyasi, kunlik tahlillar, sensor mashqlar va rivojlantirish bo'yicha savollaringizga javob berishga tayyorman.",
       timestamp: new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }),
     },
   ],
@@ -53,7 +53,7 @@ const INITIAL_MESSAGES: Record<'teacher' | 'parent' | 'guest', ChatMessageItem[]
     {
       id: 'm-init-guest',
       sender: 'ai',
-      text: "Salom! Yordamchi.uz platformasiga xush kelibsiz. Maxsus ta'lim, Daun sindromi va autizmli bolalar rivojlanishi haqida qanday savollaringiz bor?",
+      text: "Salom! Yordamchi med platformasiga xush kelibsiz. Maxsus ta'lim, Daun sindromi va autizmli bolalar rivojlanishi haqida qanday savollaringiz bor?",
       timestamp: new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }),
     },
   ],
