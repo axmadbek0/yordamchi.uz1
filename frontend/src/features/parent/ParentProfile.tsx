@@ -48,29 +48,31 @@ export function ParentProfile() {
   const [todayReport, setTodayReport] = useState<DailyStatusEntry | null>(null);
 
   useEffect(() => {
-    const allStudents = getStudents();
-    if (user?.associatedStudentId) {
-      const matched = allStudents.filter((s) => s.id === user.associatedStudentId);
-      if (matched.length > 0) {
-        setChildrenList(matched);
+    getStudents().then((allStudents) => {
+      if (user?.associatedStudentId) {
+        const matched = allStudents.filter((s) => s.id === user.associatedStudentId);
+        if (matched.length > 0) {
+          setChildrenList(matched);
+        } else {
+          setChildrenList(allStudents.slice(0, 2));
+        }
       } else {
         setChildrenList(allStudents.slice(0, 2));
       }
-    } else {
-      setChildrenList(allStudents.slice(0, 2));
-    }
+    });
   }, [user]);
 
   const currentChild = childrenList[selectedChildIndex] || null;
 
   useEffect(() => {
     if (currentChild) {
-      const reports = getReportsForStudent(currentChild.id);
-      if (reports.length > 0) {
-        setTodayReport(reports[0]);
-      } else {
-        setTodayReport(null);
-      }
+      getReportsForStudent(currentChild.id).then((reports) => {
+        if (reports.length > 0) {
+          setTodayReport(reports[0]);
+        } else {
+          setTodayReport(null);
+        }
+      });
     }
   }, [currentChild]);
 

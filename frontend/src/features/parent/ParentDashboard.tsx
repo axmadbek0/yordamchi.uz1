@@ -61,12 +61,13 @@ export function ParentDashboard() {
 
   useEffect(() => {
     if (user?.associatedStudentId) {
-      const students = getStudents();
-      const matched = students.find((s) => s.id === user.associatedStudentId);
-      if (matched) {
-        setStudent(matched);
-        setStudentReports(getReportsForStudent(matched.id));
-      }
+      getStudents().then((students) => {
+        const matched = students.find((s) => s.id === user.associatedStudentId);
+        if (matched) {
+          setStudent(matched);
+          getReportsForStudent(matched.id).then(setStudentReports);
+        }
+      });
     }
   }, [user]);
 

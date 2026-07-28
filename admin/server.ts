@@ -38,7 +38,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[Yordamchi.uz Admin] Server running on http://localhost:${PORT}`);
+    console.log(`[Yordamchi.med Admin] Server running on http://localhost:${PORT}`);
   });
 }
 

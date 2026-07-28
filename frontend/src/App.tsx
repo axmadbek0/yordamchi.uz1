@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './lib/auth';
 import { HomePage } from './features/marketing/HomePage';
 import { LoginPage } from './features/auth/LoginPage';
+import { SignupPage } from './features/auth/SignupPage';
 import { TeacherDashboard } from './features/teacher/TeacherDashboard';
 import { TeacherProfile } from './features/teacher/TeacherProfile';
 import { ParentDashboard } from './features/parent/ParentDashboard';
@@ -51,6 +52,9 @@ export default function App() {
 
             {/* Login Route */}
             <Route path="/login" element={<LoginPage />} />
+
+            {/* Signup Route */}
+            <Route path="/signup" element={<SignupPage />} />
 
             {/* Teacher Private Area */}
             <Route

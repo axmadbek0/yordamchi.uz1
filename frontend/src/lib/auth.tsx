@@ -5,11 +5,10 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AuthUser, UserRole } from '../types';
-import { getStudents } from './db';
 
 interface AuthContextType {
   user: AuthUser | null;
-  login: (role: UserRole, schoolNumber: number, login: string, passwordString: string) => Promise<boolean>;
+  login: (role: UserRole, schoolNumber: number, loginStr: string, passwordString: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -41,81 +40,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   ): Promise<boolean> => {
     setIsLoading(true);
     
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    // Admin auth
-    if (role === 'admin' && loginStr === 'admin' && passwordStr === 'admin123') {
-      const adminUser: AuthUser = {
-        id: 'admin-1',
-        role: 'admin',
-        schoolNumber: schoolNumber,
-        login: 'admin',
-        displayName: 'Tizim Admini',
-      };
-      setUser(adminUser);
-      localStorage.setItem('yordamchi_auth_user', JSON.stringify(adminUser));
-      setIsLoading(false);
-      return true;
-    }
-
-    // Teacher auth - "umumi" is default index 1
-    if (role === 'teacher' && loginStr.startsWith('umumi') && passwordStr === `${schoolNumber}maktab${loginStr}`) {
-      const teacherUser: AuthUser = {
-        id: `teacher-${loginStr}`,
-        role: 'teacher',
-        schoolNumber: schoolNumber,
-        login: loginStr,
-        displayName: `O‘qituvchi (${loginStr === 'umumi' ? 'Asosiy' : loginStr})`,
-      };
-      setUser(teacherUser);
-      localStorage.setItem('yordamchi_auth_user', JSON.stringify(teacherUser));
-      setIsLoading(false);
-      return true;
-    }
-
-    // Parent auth - Matches login/password in students database
-    if (role === 'parent') {
-      const students = getStudents();
-      const student = students.find(
-        (s) => s.schoolNumber === schoolNumber && s.parentLogin === loginStr && s.parentPassword === passwordStr
-      );
-
-      if (student) {
-        const parentUser: AuthUser = {
-          id: `parent-${student.id}`,
-          role: 'parent',
-          schoolNumber: schoolNumber,
+    try {
+      const response = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
           login: loginStr,
-          displayName: `${student.fullName}ning ota-onasi`,
-          associatedStudentId: student.id,
-        };
-        setUser(parentUser);
-        localStorage.setItem('yordamchi_auth_user', JSON.stringify(parentUser));
-        
-        // Mark student credentials as activated
-        if (!student.credentialsActivated) {
-          student.credentialsActivated = true;
-          const allStudents = JSON.parse(localStorage.getItem('yordamchi_students') || '[]');
-          const idx = allStudents.findIndex((s: any) => s.id === student.id);
-          if (idx !== -1) {
-            allStudents[idx].credentialsActivated = true;
-            localStorage.setItem('yordamchi_students', JSON.stringify(allStudents));
-          }
-        }
-        
-        setIsLoading(false);
-        return true;
-      }
-    }
+          password: passwordStr,
+          role: role.toUpperCase()
+        })
+      });
 
-    setIsLoading(false);
-    return false;
+      if (!response.ok) {
+        setIsLoading(false);
+        return false;
+      }
+
+      const data = await response.json();
+      
+      const authUser: AuthUser = {
+        id: data.user.id,
+        role: role,
+        schoolNumber: schoolNumber,
+        login: data.user.login,
+        displayName: data.user.full_name || data.user.login,
+        associatedStudentId: data.user.associatedStudentId // optionally return from backend for parents
+      };
+
+      setUser(authUser);
+      localStorage.setItem('yordamchi_auth_user', JSON.stringify(authUser));
+      localStorage.setItem('yordamchi_auth_token', data.token);
+
+      setIsLoading(false);
+      return true;
+    } catch (error) {
+      console.error("Login failed", error);
+      setIsLoading(false);
+      return false;
+    }
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('yordamchi_auth_user');
+    localStorage.removeItem('yordamchi_auth_token');
   };
 
   return (
@@ -132,3 +102,4 @@ export function useAuth() {
   }
   return context;
 }
+

@@ -23,7 +23,7 @@ export function AdminLoginPage() {
   const [error, setError] = useState('');
 
   const fillCredentials = () => {
-    setEmail('admin@yordamchi.uz');
+    setEmail('admin@yordamchi.med');
     setPassword('superadmin123');
     setError('');
   };
@@ -82,7 +82,7 @@ export function AdminLoginPage() {
               <Shield className="w-8 h-8" />
             </div>
             <h1 className="text-2xl font-black text-deep font-serif">
-              YORDAMCHI<span className="text-coral">.UZ</span>
+              YORDAMCHI<span className="text-coral">.MED</span>
             </h1>
             <span className="inline-flex items-center gap-1.5 bg-deep text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full">
               <Shield className="w-3 h-3" />
@@ -108,7 +108,7 @@ export function AdminLoginPage() {
               <Input
                 label="Email"
                 type="email"
-                placeholder="admin@yordamchi.uz"
+                placeholder="admin@yordamchi.med"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -164,7 +164,7 @@ export function AdminLoginPage() {
 
       {/* Footer */}
       <footer className="p-4 text-center text-xs text-muted">
-        © 2026 Yordamchi.uz — Super-Admin boshqaruv paneli
+        © 2026 Yordamchi.med — Super-Admin boshqaruv paneli
       </footer>
     </div>
   );

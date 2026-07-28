@@ -44,12 +44,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     // Super-admin auth (no schoolNumber needed)
-    if (role === 'super_admin' && loginStr === 'admin@yordamchi.uz' && passwordStr === 'superadmin123') {
+    if (role === 'super_admin' && loginStr === 'admin@yordamchi.med' && passwordStr === 'superadmin123') {
       const superAdminUser: AuthUser = {
         id: 'superadmin-1',
         role: 'super_admin',
         schoolNumber: 0,
-        login: 'admin@yordamchi.uz',
+        login: 'admin@yordamchi.med',
         displayName: 'Super Admin',
       };
       setUser(superAdminUser);

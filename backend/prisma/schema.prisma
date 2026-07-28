@@ -5,29 +5,13 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Role {
-  USER
   ADMIN
-}
-
-enum OrderStatus {
-  PENDING
-  PAID
-  SHIPPED
-  COMPLETED
-}
-
-enum PaymentStatus {
-  SUCCESS
-  FAILED
-  PENDING
-}
-
-enum ChatType {
-  AI
-  SUPPORT
+  TEACHER
+  PARENT
 }
 
 enum SenderType {
@@ -36,91 +20,69 @@ enum SenderType {
   ADMIN
 }
 
+model School {
+  id         String   @id @default(uuid())
+  number     Int      @unique
+  name       String
+  region     String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  users      User[]
+  students   Student[]
+}
+
 model User {
   id            String    @id @default(uuid())
-  full_name     String
-  email         String    @unique
+  login         String    @unique // e.g. "umumi" or "12_001"
   password_hash String
-  role          Role      @default(USER)
+  role          Role
+  full_name     String?
+  phone         String?
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
 
-  orders        Order[]
-  payments      Payment[]
+  school_id     String?
+  school        School?   @relation(fields: [school_id], references: [id])
+
+  students      Student[] @relation("ParentToStudent")
+  
   chats         Chat[]
 }
 
-model Category {
-  id        String     @id @default(uuid())
-  name      String     @unique
-  parent_id String?
-  parent    Category?  @relation("SubCategories", fields: [parent_id], references: [id])
-  children  Category[] @relation("SubCategories")
-  
-  products  Product[]
+model Student {
+  id            String    @id @default(uuid())
+  first_name    String
+  last_name     String
+  class_name    String    // e.g. "2-A sinf"
+  diagnosis     String?
+  dob           DateTime?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  school_id     String
+  school        School    @relation(fields: [school_id], references: [id])
+
+  parent_id     String?
+  parent        User?     @relation("ParentToStudent", fields: [parent_id], references: [id])
+
+  logs          DailyLog[]
 }
 
-model Product {
-  id             String   @id @default(uuid())
-  name           String
-  description    String
-  price          Float
-  stock_quantity Int      @default(0)
-  images         String[]
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+model DailyLog {
+  id            String    @id @default(uuid())
+  mood          String
+  health        String
+  teacher_note  String
+  ai_analysis   String?   @db.Text
+  date          DateTime  @default(now())
 
-  category_id    String
-  category       Category @relation(fields: [category_id], references: [id])
-
-  order_items    OrderItem[]
-}
-
-model Order {
-  id          String      @id @default(uuid())
-  total_price Float
-  status      OrderStatus @default(PENDING)
-  created_at  DateTime    @default(now())
-  updated_at  DateTime    @updatedAt
-
-  user_id     String
-  user        User        @relation(fields: [user_id], references: [id])
-
-  items       OrderItem[]
-  payments    Payment[]
-}
-
-model OrderItem {
-  id                String  @id @default(uuid())
-  quantity          Int
-  price_at_purchase Float
-
-  order_id          String
-  order             Order   @relation(fields: [order_id], references: [id])
-
-  product_id        String
-  product           Product @relation(fields: [product_id], references: [id])
-}
-
-model Payment {
-  id             String        @id @default(uuid())
-  amount         Float
-  provider       String        // e.g. Stripe, Click, Payme
-  status         PaymentStatus @default(PENDING)
-  transaction_id String?
-
-  order_id       String
-  order          Order         @relation(fields: [order_id], references: [id])
-
-  user_id        String
-  user           User          @relation(fields: [user_id], references: [id])
-  
-  created_at     DateTime      @default(now())
+  student_id    String
+  student       Student   @relation(fields: [student_id], references: [id])
 }
 
 model Chat {
   id         String   @id @default(uuid())
-  type       ChatType @default(AI)
   created_at DateTime @default(now())
 
   user_id    String
@@ -132,17 +94,9 @@ model Chat {
 model Message {
   id          String     @id @default(uuid())
   sender_type SenderType
-  content     String
+  content     String     @db.Text
   created_at  DateTime   @default(now())
 
   chat_id     String
   chat        Chat       @relation(fields: [chat_id], references: [id])
-}
-
-model CameraLog {
-  id         String   @id @default(uuid())
-  camera_id  String
-  event_type String   // e.g. MOTION, ALERT
-  metadata   Json?
-  timestamp  DateTime @default(now())
 }

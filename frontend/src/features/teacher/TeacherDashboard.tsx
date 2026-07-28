@@ -72,11 +72,11 @@ export function TeacherDashboard() {
 
 
   useEffect(() => {
-    setStudents(getStudents());
-    setReports(getReports());
+    getStudents().then(setStudents);
+    getReports().then(setReports);
   }, []);
 
-  const handleAddStudent = (e: React.FormEvent) => {
+  const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFullName || !newPhone) return;
 
@@ -97,7 +97,7 @@ export function TeacherDashboard() {
       credentialsActivated: false
     };
 
-    const updated = saveStudent(newStudent);
+    const updated = await saveStudent(newStudent);
     setStudents(updated);
     setGeneratedCreds({ login: creds.login, pass: creds.password });
   };
@@ -141,7 +141,7 @@ export function TeacherDashboard() {
         createdAt: new Date().toISOString()
       };
 
-      const updated = saveDailyReport(newReport);
+      const updated = await saveDailyReport(newReport);
       setReports(updated);
       setTeacherNote('');
       setSelectedStudentId('');

@@ -11,19 +11,35 @@ const port = process.env.PORT || 5000;
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'http://localhost:5173',
+  process.env.ADMIN_URL || 'http://localhost:5174'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS policy orqali ruxsat berilmagan'));
+    }
+  },
+  credentials: true
+}));
+
 import authRoutes from './routes/auth.routes';
-import categoryRoutes from './routes/category.routes';
-import productRoutes from './routes/product.routes';
+import studentRoutes from './routes/student.routes';
 import chatRoutes from './routes/chat.routes';
+import aiRoutes from './routes/ai.routes';
 
 const httpServer = createServer(app);
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/categories', categoryRoutes);
-app.use('/api/v1/products', productRoutes);
+app.use('/api/v1/students', studentRoutes);
 app.use('/api/v1/chats', chatRoutes);
+app.use('/api/v1/ai', aiRoutes);
 
 const io = new Server(httpServer, {
   cors: {
@@ -37,7 +53,7 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Yordamchi Backend API ishlamoqda');
 });
 
-// Socket.io for Real-time chat & Camera signals
+// Socket.io for Real-time chat & signals
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 

@@ -47,7 +47,7 @@ export function AdminLayout() {
             </div>
             <div className="leading-tight">
               <h1 className="text-base font-black text-deep font-serif tracking-tight">
-                YORDAMCHI<span className="text-coral">.UZ</span>
+                YORDAMCHI<span className="text-coral">.MED</span>
               </h1>
             </div>
           </div>

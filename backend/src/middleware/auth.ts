@@ -5,6 +5,7 @@ export interface AuthRequest extends Request {
   user?: {
     id: string;
     role: string;
+    school_id?: string | null;
   };
 }
 
@@ -16,8 +17,12 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
   }
 
   try {
-    const secret = process.env.JWT_SECRET || 'your_super_secret_jwt_key_change_me_in_production';
-    const decoded = jwt.verify(token, secret) as { id: string; role: string };
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      console.error('FATAL ERROR: JWT_SECRET is not set.');
+      return res.status(500).json({ message: 'Server konfiguratsiya xatosi.' });
+    }
+    const decoded = jwt.verify(token, secret) as { id: string; role: string; school_id?: string | null };
     req.user = decoded;
     next();
   } catch (error) {

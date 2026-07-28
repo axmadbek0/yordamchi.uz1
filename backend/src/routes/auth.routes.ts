@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import { register, login } from '../controllers/auth.controller';
+import { register, loginUser, googleAuth } from '../controllers/auth.controller';
 
 const router = Router();
 
 router.post('/register', register);
-router.post('/login', login);
+router.post('/login', loginUser);
+router.post('/google', googleAuth);
 
 export default router;
