@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import { getAllCategories, createCategory } from '../controllers/category.controller';
-import { authenticate, authorize } from '../middleware/auth';
+import { authMiddleware } from '../middlewares/authMiddleware';
+import { authorizeRoles } from '../middlewares/roleMiddleware';
 
 const router = Router();
 
 router.get('/', getAllCategories);
-router.post('/', authenticate, authorize(['ADMIN']), createCategory);
+router.post('/', authMiddleware, authorizeRoles('SUPER_ADMIN'), createCategory);
 
 export default router;

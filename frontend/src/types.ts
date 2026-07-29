@@ -9,9 +9,10 @@ export interface AuthUser {
   id: string;
   role: UserRole;
   schoolNumber: number;
+  schoolId?: string;
   login: string;
   displayName: string;
-  associatedStudentId?: string; // For parents to link to a student
+  associatedStudentId?: string;
 }
 
 export interface Student {

@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import { getAllProducts, createProduct } from '../controllers/product.controller';
-import { authenticate, authorize } from '../middleware/auth';
+import { authMiddleware } from '../middlewares/authMiddleware';
+import { authorizeRoles } from '../middlewares/roleMiddleware';
 
 const router = Router();
 
 router.get('/', getAllProducts);
-router.post('/', authenticate, authorize(['ADMIN']), createProduct);
+router.post('/', authMiddleware, authorizeRoles('SUPER_ADMIN'), createProduct);
 
 export default router;

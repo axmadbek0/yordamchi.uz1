@@ -24,18 +24,18 @@ export function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Auto-fill values on click for fast demo
+  // Auto-fill — seed bilan bir xil parol
   const fillCredentials = (type: 'parent' | 'teacher') => {
     if (type === 'parent') {
       setRole('parent');
       setSchoolNumber('12');
       setUsername('12_001');
-      setPassword('password123');
+      setPassword('123456');
     } else {
       setRole('teacher');
       setSchoolNumber('12');
       setUsername('umumi');
-      setPassword('12maktabumumi');
+      setPassword('123456');
     }
     setError('');
   };
@@ -59,17 +59,22 @@ export function LoginPage() {
 
     setIsLoading(true);
     try {
-      const success = await login(role, Number(schoolNumber), username, password);
-      if (success) {
-        if (role === 'parent') {
+      const result = await login(role, Number(schoolNumber), username, password);
+      if (result.ok) {
+        // Backend dagi haqiqiy rol bo'yicha yo'naltirish (UI dagi role faqat UX)
+        const stored = localStorage.getItem('yordamchi_auth_user');
+        const parsed = stored ? (JSON.parse(stored) as { role?: string }) : null;
+        const actualRole = parsed?.role || role;
+
+        if (actualRole === 'parent') {
           navigate('/parent/dashboard');
         } else {
           navigate('/teacher/dashboard');
         }
       } else {
-        setError('Login yoki parol xato! Iltimos, tekshirib qayta kiriting.');
+        setError(result.error || 'Login yoki parol xato! Iltimos, tekshirib qayta kiriting.');
       }
-    } catch (e) {
+    } catch {
       setError('Tizimga ulanishda xatolik yuz berdi. Iltimos qayta urining.');
     } finally {
       setIsLoading(false);

@@ -327,12 +327,24 @@ export function HomePage() {
             {/* Team Member 2 */}
             <Card variant="white" className="flex flex-col items-center justify-center p-8 border-t-4 border-t-coral/40 text-center shadow-lg transform hover:-translate-y-2 transition-all">
               <div className="w-24 h-24 rounded-full bg-coral text-white flex items-center justify-center mb-4 text-3xl font-bold shadow-md shadow-coral/30">
-                MO
+                UM
               </div>
-              <h4 className="text-xl font-bold text-deep">Madinabonu O'rmonova</h4>
-              <Badge variant="coral" className="mt-2 mb-4">Frontend Team</Badge>
+              <h4 className="text-xl font-bold text-deep">Urmanova Madinabonu</h4>
+              <Badge variant="coral" className="mt-2 mb-4">Frontend Dasturchi</Badge>
               <p className="text-sm text-muted font-medium">
                 Frontend Dasturchi
+              </p>
+            </Card>
+
+            {/* Team Member 3 */}
+            <Card variant="blue" className="flex flex-col items-center justify-center p-8 border-t-4 border-t-primary/40 text-center">
+              <div className="w-24 h-24 rounded-full bg-primary text-white flex items-center justify-center mb-4 text-3xl font-bold shadow-md shadow-primary/30">
+                FY
+              </div>
+              <h4 className="text-xl font-bold text-deep">Yusupjanov Farruxjon</h4>
+              <Badge variant="primary" className="mt-2 mb-4">Backend Dasturchi</Badge>
+              <p className="text-sm text-muted font-medium">
+                Backend Dasturchi
               </p>
             </Card>
           </div>
@@ -365,12 +377,12 @@ export function HomePage() {
                   </div>
                   <span>info@yordamchi.med</span>
                 </div>
-                <div className="flex items-center gap-3">
+                {/* <div className="flex items-center gap-3">
                   <div className="p-2 bg-white rounded-full text-primary shadow-sm">
                     <MapPin className="w-5 h-5" />
                   </div>
                   <span>Toshkent shahri, Amir Temur shoh ko‘chasi, 12-uy</span>
-                </div>
+                </div> */}
               </div>
             </div>
 
