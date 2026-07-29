@@ -1,10 +1,21 @@
 import { Router } from 'express';
-import { register, loginUser, googleAuth } from '../controllers/auth.controller';
+import { login, refreshToken, logout } from '../controllers/auth.controller';
+import { register, me } from '../controllers/authController';
+import { authenticate } from '../middlewares/auth.middleware';
+import { authorizeRoles } from '../middlewares/role.middleware';
 
 const router = Router();
 
-router.post('/register', register);
-router.post('/login', loginUser);
-router.post('/google', googleAuth);
+router.post('/login', login);
+router.post('/refresh', refreshToken);
+router.post('/logout', logout);
+router.get('/me', authenticate, me);
+
+router.post(
+  '/register',
+  authenticate,
+  authorizeRoles('SUPER_ADMIN', 'SCHOOL_ADMIN'),
+  register
+);
 
 export default router;

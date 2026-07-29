@@ -3,6 +3,7 @@
  */
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { sendChatMessage } from '../../api/aiApi';
 
 export interface ChatMessageItem {
   id: string;
@@ -123,22 +124,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         parts: [{ text: m.text }],
       }));
 
-      const res = await fetch('/api/v1/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: textToSend,
-          history: chatHistory,
-          roleContext: role,
-          pageContext: currentPage,
-        }),
+      const reply = await sendChatMessage({
+        message: textToSend,
+        history: chatHistory,
       });
-
-      if (!res.ok) {
-        throw new Error('Server error');
-      }
-
-      const data = await res.json();
       let actionLink;
 
       // Smart contextual links
@@ -158,7 +147,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const aiMsg: ChatMessageItem = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: data.reply || "Tushundim. Farzandingiz bilan uydagi sensor va motorika mashqlarini bajarishni tavsiya etaman.",
+        text: reply || "Tushundim. Farzandingiz bilan uydagi sensor va motorika mashqlarini bajarishni tavsiya etaman.",
         timestamp: new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }),
         actionLink,
       };

@@ -1,81 +1,112 @@
-import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth';
-import { PrismaClient } from '@prisma/client';
+import { Response, NextFunction } from 'express';
+import { AuthRequest } from '../types/auth.types';
+import { AppError } from '../utils/AppError';
+import {
+  createStudent,
+  getStudents,
+  getStudentById,
+  getOwnChildren,
+} from '../services/student.service';
+import { CreateStudentInput } from '../validations/student.validation';
 
-const prisma = new PrismaClient();
-
-export const getStudents = async (req: AuthRequest, res: Response) => {
+/**
+ * GET /api/students
+ */
+export async function getAll(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   try {
-    const { school_id, parent_id } = req.query;
-    const user = req.user;
-
-    if (!user) {
-      return res.status(401).json({ message: 'Kirish taqiqlangan' });
+    if (!req.user) {
+      throw AppError.unauthorized();
     }
 
-    const whereClause: any = {};
-    if (school_id) whereClause.school_id = school_id as string;
-    if (parent_id) whereClause.parent_id = parent_id as string;
+    const students = await getStudents(
+      req.user.id,
+      req.user.role,
+      req.user.school_id
+    );
 
-    // Enforce role constraints for listing students
-    if (user.role === 'PARENT') {
-      whereClause.parent_id = user.id;
-    } else if (user.role === 'TEACHER') {
-      whereClause.school_id = user.school_id;
-    }
-
-    const students = await prisma.student.findMany({
-      where: whereClause,
-      include: {
-        parent: {
-          select: { login: true, full_name: true, phone: true }
-        }
-      }
-    });
     res.json(students);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server xatosi' });
+    next(error);
   }
-};
+}
 
-export const getStudentById = async (req: AuthRequest, res: Response) => {
+/**
+ * POST /api/students
+ */
+export async function create(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   try {
-    const { id } = req.params;
-    const user = req.user;
-
-    if (!user) {
-      return res.status(401).json({ message: 'Kirish taqiqlangan' });
+    if (!req.user) {
+      throw AppError.unauthorized();
     }
 
-    const student = await prisma.student.findUnique({
-      where: { id },
-      include: {
-        logs: {
-          orderBy: { date: 'desc' },
-          take: 10
-        },
-        parent: {
-          select: { login: true, full_name: true }
-        }
-      }
+    const input = req.body as CreateStudentInput;
+
+    const result = await createStudent(input, {
+      userId: req.user.id,
+      role: req.user.role,
+      schoolId: req.user.school_id,
     });
 
-    if (!student) {
-      return res.status(404).json({ message: 'O`quvchi topilmadi' });
+    res.status(201).json({
+      message: 'O\'quvchi muvaffaqiyatli qo\'shildi',
+      student: result.student,
+      parentCredentials: result.parentCredentials,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * GET /api/students/:id
+ */
+export async function getOne(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    if (!req.user) {
+      throw AppError.unauthorized();
     }
 
-    // IDOR protection
-    if (user.role === 'PARENT' && student.parent_id !== user.id) {
-      return res.status(403).json({ message: 'Sizga bu o`quvchini ko`rish ruxsat etilmagan' });
-    }
-    if (user.role === 'TEACHER' && student.school_id !== user.school_id) {
-      return res.status(403).json({ message: 'Sizga bu o`quvchini ko`rish ruxsat etilmagan' });
-    }
+    const student = await getStudentById(
+      req.params.id,
+      req.user.id,
+      req.user.role,
+      req.user.school_id
+    );
 
     res.json(student);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server xatosi' });
+    next(error);
   }
-};
+}
+
+/**
+ * GET /api/students/me/children — faqat PARENT
+ */
+export async function getMyChildren(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    if (!req.user) {
+      throw AppError.unauthorized();
+    }
+
+    const children = await getOwnChildren(req.user.id);
+    res.json(children);
+  } catch (error) {
+    next(error);
+  }
+}

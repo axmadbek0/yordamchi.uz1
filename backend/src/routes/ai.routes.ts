@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import { analyzeStatus, chatWithAi } from '../controllers/ai.controller';
+import { analyzeStatus, chatWithAiHandler } from '../controllers/ai.controller';
+import { aiRateLimiter } from '../middlewares/rateLimiter';
 
 const router = Router();
 
-router.post('/analyze-status', analyzeStatus);
-router.post('/chat', chatWithAi);
+router.post('/analyze-status', aiRateLimiter, analyzeStatus);
+router.post('/chat', aiRateLimiter, chatWithAiHandler);
 
 export default router;

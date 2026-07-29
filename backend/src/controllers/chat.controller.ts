@@ -1,56 +1,117 @@
-import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { Response, NextFunction } from 'express';
+import { SenderType } from '@prisma/client';
+import { prisma } from '../lib/prisma';
+import { AuthRequest } from '../types/auth.types';
+import { AppError } from '../utils/AppError';
 
-const prisma = new PrismaClient();
-
-export const getUserChats = async (req: Request, res: Response) => {
+/**
+ * GET /api/v1/chats — foydalanuvchining chatlari
+ */
+export async function getUserChats(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   try {
-    const user_id = (req as any).user?.id;
-    if (!user_id) return res.status(401).json({ message: 'Avtorizatsiyadan o`tmagan' });
+    if (!req.user?.id) {
+      throw AppError.unauthorized('Avtorizatsiyadan o\'tmagan');
+    }
 
     const chats = await prisma.chat.findMany({
-      where: { user_id },
+      where: { user_id: req.user.id },
       include: {
         messages: {
           orderBy: { created_at: 'desc' },
-          take: 1
-        }
-      }
+          take: 1,
+        },
+      },
+      orderBy: { created_at: 'desc' },
     });
+
     res.json(chats);
   } catch (error) {
-    res.status(500).json({ message: 'Server xatosi' });
+    next(error);
   }
-};
+}
 
-export const createChat = async (req: Request, res: Response) => {
+/**
+ * POST /api/v1/chats — yangi chat yaratish
+ * Ixtiyoriy body: { content?: string } — birinchi xabar bilan birga
+ */
+export async function createChat(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   try {
-    const user_id = (req as any).user?.id;
-    const { type } = req.body; // AI or SUPPORT
-    
-    if (!user_id) return res.status(401).json({ message: 'Avtorizatsiyadan o`tmagan' });
+    if (!req.user?.id) {
+      throw AppError.unauthorized('Avtorizatsiyadan o\'tmagan');
+    }
+
+    const { content } = req.body as { content?: unknown };
 
     const chat = await prisma.chat.create({
       data: {
-        user_id,
-        type: type || 'AI'
-      }
+        user_id: req.user.id,
+        ...(typeof content === 'string' && content.trim()
+          ? {
+              messages: {
+                create: {
+                  sender_type: SenderType.USER,
+                  content: content.trim(),
+                },
+              },
+            }
+          : {}),
+      },
+      include: {
+        messages: {
+          orderBy: { created_at: 'asc' },
+        },
+      },
     });
+
     res.status(201).json(chat);
   } catch (error) {
-    res.status(500).json({ message: 'Server xatosi' });
+    next(error);
   }
-};
+}
 
-export const getChatMessages = async (req: Request, res: Response) => {
+/**
+ * GET /api/v1/chats/:chatId/messages — chat xabarlari
+ */
+export async function getChatMessages(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   try {
+    if (!req.user?.id) {
+      throw AppError.unauthorized('Avtorizatsiyadan o\'tmagan');
+    }
+
     const { chatId } = req.params;
+
+    const chat = await prisma.chat.findUnique({
+      where: { id: chatId },
+      select: { id: true, user_id: true },
+    });
+
+    if (!chat) {
+      throw AppError.notFound('Chat topilmadi');
+    }
+
+    if (chat.user_id !== req.user.id) {
+      throw AppError.forbidden('Ruxsat rad etildi');
+    }
+
     const messages = await prisma.message.findMany({
       where: { chat_id: chatId },
-      orderBy: { created_at: 'asc' }
+      orderBy: { created_at: 'asc' },
     });
+
     res.json(messages);
   } catch (error) {
-    res.status(500).json({ message: 'Server xatosi' });
+    next(error);
   }
-};
+}

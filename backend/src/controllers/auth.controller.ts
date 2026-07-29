@@ -1,158 +1,220 @@
-import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { PrismaClient, Role } from '@prisma/client';
-import { OAuth2Client } from 'google-auth-library';
+import { Request, Response, NextFunction } from 'express';
+import crypto from 'crypto';
+import { Role } from '@prisma/client';
+import { prisma } from '../lib/prisma';
+import { comparePassword } from '../utils/hash';
+import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt';
+import { AppError } from '../utils/AppError';
+import {
+  REFRESH_COOKIE_NAME,
+  setRefreshTokenCookie,
+  clearRefreshTokenCookie,
+} from '../utils/cookies';
 
-const prisma = new PrismaClient();
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || 'dummy-client-id');
+const INVALID_CREDENTIALS = 'Login yoki parol noto\'g\'ri';
 
-export const register = async (req: Request, res: Response) => {
+const DUMMY_HASH =
+  '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW';
+
+function sha256(value: string): string {
+  return crypto.createHash('sha256').update(value).digest('hex');
+}
+
+function getRefreshExpiryDate(): Date {
+  const raw = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
+  const match = /^(\d+)d$/.exec(raw);
+  const days = match ? Number(match[1]) : 7;
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + days);
+  return expiresAt;
+}
+
+function toPublicUser(user: {
+  id: string;
+  login: string;
+  full_name: string | null;
+  role: Role;
+  school_id: string | null;
+  phone: string | null;
+}) {
+  return {
+    id: user.id,
+    login: user.login,
+    full_name: user.full_name,
+    role: user.role,
+    school_id: user.school_id,
+    phone: user.phone,
+  };
+}
+
+async function issueTokens(user: {
+  id: string;
+  role: Role;
+  school_id: string | null;
+}) {
+  const jti = crypto.randomUUID();
+
+  const accessToken = signAccessToken({
+    sub: user.id,
+    role: user.role,
+    school_id: user.school_id,
+  });
+
+  const refreshToken = signRefreshToken({
+    sub: user.id,
+    jti,
+  });
+
+  await prisma.refreshToken.create({
+    data: {
+      token_hash: sha256(refreshToken),
+      user_id: user.id,
+      expires_at: getRefreshExpiryDate(),
+    },
+  });
+
+  return { accessToken, refreshToken };
+}
+
+/**
+ * POST /api/auth/login
+ * Body: { login, password }
+ * refreshToken — faqat httpOnly cookie orqali
+ */
+export async function login(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   try {
-    const { login, password, full_name, role, school_id } = req.body;
+    console.log('Kelyotgan ma\'lumot:', req.body);
 
-    // Input Validation
-    if (!login || typeof login !== 'string' || login.length < 3) {
-      return res.status(400).json({ message: 'Login kamida 3 ta belgidan iborat bo`lishi kerak' });
-    }
-    if (!password || typeof password !== 'string' || password.length < 6) {
-      return res.status(400).json({ message: 'Parol kamida 6 ta belgidan iborat bo`lishi kerak' });
-    }
-    if (!role || !['ADMIN', 'TEACHER', 'PARENT'].includes(role)) {
-      return res.status(400).json({ message: 'Noto`g`ri rol ko`rsatildi' });
-    }
+    const { login: loginInput, password } = req.body as {
+      login?: unknown;
+      password?: unknown;
+      role?: unknown;
+      schoolNumber?: unknown;
+    };
 
-    const existingUser = await prisma.user.findUnique({ where: { login } });
-    if (existingUser) {
-      return res.status(400).json({ message: 'Ushbu login band qilingan' });
+    // role / schoolNumber ixtiyoriy — e'tiborsiz qoldiriladi
+    if (typeof loginInput !== 'string' || typeof password !== 'string') {
+      throw AppError.badRequest('Login va parol kiritilishi shart');
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const password_hash = await bcrypt.hash(password, salt);
+    if (loginInput.trim().length < 3 || password.length < 6) {
+      throw AppError.badRequest('Login yoki parol noto\'g\'ri formatda');
+    }
 
-    const user = await prisma.user.create({
-      data: {
-        login,
-        password_hash,
-        full_name,
-        role: role as Role,
-        school_id
-      },
+    const normalizedLogin = loginInput.trim().toLowerCase();
+
+    const user = await prisma.user.findUnique({
+      where: { login: normalizedLogin },
     });
 
-    res.status(201).json({ message: 'Ro`yxatdan muvaffaqiyatli o`tdingiz', userId: user.id });
+    const passwordOk = await comparePassword(
+      password,
+      user?.password_hash ?? DUMMY_HASH
+    );
+
+    if (!user || !passwordOk) {
+      throw AppError.unauthorized(INVALID_CREDENTIALS);
+    }
+
+    const tokens = await issueTokens(user);
+    setRefreshTokenCookie(res, tokens.refreshToken);
+
+    res.status(200).json({
+      message: 'Tizimga muvaffaqiyatli kirdingiz',
+      accessToken: tokens.accessToken,
+      token: tokens.accessToken,
+      user: toPublicUser(user),
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server xatosi' });
+    next(error);
   }
-};
+}
 
-export const loginUser = async (req: Request, res: Response) => {
+/**
+ * POST /api/auth/refresh
+ * Cookie'dagi refreshToken orqali yangi accessToken beradi
+ */
+export async function refreshToken(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   try {
-    const { login, password, role } = req.body;
+    const tokenFromCookie = req.cookies?.[REFRESH_COOKIE_NAME];
 
-    if (!login || typeof login !== 'string' || !password || typeof password !== 'string') {
-      return res.status(400).json({ message: 'Login va parol kiritilishi shart' });
+    if (typeof tokenFromCookie !== 'string' || !tokenFromCookie.trim()) {
+      throw AppError.unauthorized('Autentifikatsiya muvaffaqiyatsiz');
     }
 
-    const user = await prisma.user.findUnique({ where: { login } });
-    if (!user) {
-      return res.status(400).json({ message: 'Login yoki parol noto`g`ri' });
-    }
+    const payload = verifyRefreshToken(tokenFromCookie);
+    const tokenHash = sha256(tokenFromCookie);
 
-    // Role check if needed
-    if (role && user.role !== role && user.role !== 'ADMIN') {
-      return res.status(403).json({ message: 'Siz ushbu rolga ega emassiz' });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password_hash);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Login yoki parol noto`g`ri' });
-    }
-
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      console.error('FATAL ERROR: JWT_SECRET is not set.');
-      return res.status(500).json({ message: 'Server konfiguratsiya xatosi.' });
-    }
-
-    const token = jwt.sign({ id: user.id, role: user.role, school_id: user.school_id }, secret, {
-      expiresIn: '1d',
+    const storedToken = await prisma.refreshToken.findUnique({
+      where: { token_hash: tokenHash },
+      include: { user: true },
     });
 
-    res.json({
-      message: 'Tizimga kirdingiz',
-      token,
-      user: {
-        id: user.id,
-        login: user.login,
-        full_name: user.full_name,
-        role: user.role,
-        school_id: user.school_id
-      }
+    if (
+      !storedToken ||
+      storedToken.revoked_at ||
+      storedToken.expires_at < new Date() ||
+      storedToken.user_id !== payload.sub
+    ) {
+      clearRefreshTokenCookie(res);
+      throw AppError.unauthorized('Autentifikatsiya muvaffaqiyatsiz');
+    }
+
+    // Rotation: eski token bekor qilinadi
+    await prisma.refreshToken.update({
+      where: { id: storedToken.id },
+      data: { revoked_at: new Date() },
+    });
+
+    const tokens = await issueTokens(storedToken.user);
+    setRefreshTokenCookie(res, tokens.refreshToken);
+
+    res.status(200).json({
+      accessToken: tokens.accessToken,
+      token: tokens.accessToken,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server xatosi' });
+    if (error instanceof AppError) {
+      next(error);
+      return;
+    }
+    clearRefreshTokenCookie(res);
+    next(AppError.unauthorized('Autentifikatsiya muvaffaqiyatsiz'));
   }
-};
+}
 
-export const googleAuth = async (req: Request, res: Response) => {
+/**
+ * POST /api/auth/logout — cookie + DB dagi refresh tokenni bekor qilish
+ */
+export async function logout(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   try {
-    const { token } = req.body;
-    if (!token) {
-      return res.status(400).json({ message: 'Token kiritilishi shart' });
-    }
+    const tokenFromCookie = req.cookies?.[REFRESH_COOKIE_NAME];
 
-    const ticket = await googleClient.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    const payload = ticket.getPayload();
-    if (!payload || !payload.email) {
-      return res.status(400).json({ message: 'Yaroqsiz Google token' });
-    }
-
-    const { email, name } = payload;
-    let user = await prisma.user.findUnique({ where: { login: email } });
-
-    if (!user) {
-      const salt = await bcrypt.genSalt(10);
-      const randomPassword = await bcrypt.hash(Math.random().toString(36).slice(-10), salt);
-      user = await prisma.user.create({
-        data: {
-          login: email,
-          password_hash: randomPassword,
-          full_name: name || '',
-          role: 'PARENT' as Role, // Default role
-        }
+    if (typeof tokenFromCookie === 'string' && tokenFromCookie.trim()) {
+      await prisma.refreshToken.updateMany({
+        where: {
+          token_hash: sha256(tokenFromCookie),
+          revoked_at: null,
+        },
+        data: { revoked_at: new Date() },
       });
     }
 
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      return res.status(500).json({ message: 'Server konfiguratsiya xatosi.' });
-    }
-
-    const jwtToken = jwt.sign({ id: user.id, role: user.role, school_id: user.school_id }, secret, {
-      expiresIn: '1d',
-    });
-
-    res.json({
-      message: 'Tizimga kirdingiz',
-      token: jwtToken,
-      user: {
-        id: user.id,
-        login: user.login,
-        full_name: user.full_name,
-        role: user.role,
-        school_id: user.school_id
-      }
-    });
-
+    clearRefreshTokenCookie(res);
+    res.json({ message: 'Tizimdan chiqdingiz' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server xatosi (Google Auth)' });
+    next(error);
   }
-};
-
+}

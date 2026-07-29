@@ -6,7 +6,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/auth';
-import { getStudents, saveStudent, saveDailyReport, getReports, analyzeReportWithAI } from '../../lib/db';
+import { saveStudent, getReportsForStudent } from '../../lib/db';
+import { submitDailyLog } from '../../api/studentApi';
+import { useStudents } from '../../api/hooks/useStudents';
 import { generateParentCredentials } from '../../lib/generateCredentials';
 import { Student, DailyStatusEntry } from '../../types';
 import { Card } from '../../components/ui/Card';
@@ -49,6 +51,7 @@ export function TeacherDashboard() {
   const { setContextInfo } = useChatContext();
   const [students, setStudents] = useState<Student[]>([]);
   const [reports, setReports] = useState<DailyStatusEntry[]>([]);
+  const { data: studentsData, refetch: refetchStudents, isLoading: studentsLoading } = useStudents();
 
   // Search/Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,9 +75,14 @@ export function TeacherDashboard() {
 
 
   useEffect(() => {
-    getStudents().then(setStudents);
-    getReports().then(setReports);
-  }, []);
+    if (studentsData) {
+      setStudents(studentsData);
+    }
+  }, [studentsData]);
+
+  useEffect(() => {
+    setContextInfo('teacher', '/teacher/dashboard');
+  }, [setContextInfo]);
 
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,8 +105,13 @@ export function TeacherDashboard() {
       credentialsActivated: false
     };
 
-    const updated = await saveStudent(newStudent);
-    setStudents(updated);
+    if (!user?.schoolId) {
+      alert('Maktab ma\'lumoti topilmadi. Iltimos, qayta tizimga kiring.');
+      return;
+    }
+
+    const result = await saveStudent(newStudent, user.schoolId);
+    setStudents(result);
     setGeneratedCreds({ login: creds.login, pass: creds.password });
   };
 
@@ -122,30 +135,22 @@ export function TeacherDashboard() {
 
     setIsAnalyzing(true);
     try {
-      // Call server side Gemini analysis
-      const aiResponse = await analyzeReportWithAI(
-        targetStudent.fullName,
-        selectedMood,
-        selectedHealth,
-        teacherNote
-      );
+      const health = selectedHealth === 'sog‘lom' ? "sog'lom" : selectedHealth;
 
-      const newReport: DailyStatusEntry = {
-        id: `r-${Date.now()}`,
+      await submitDailyLog({
         studentId: selectedStudentId,
-        date: new Date().toISOString().split('T')[0],
-        healthStatus: selectedHealth,
+        logText: teacherNote,
         mood: selectedMood,
-        teacherNote: teacherNote,
-        aiAnalysis: aiResponse,
-        createdAt: new Date().toISOString()
-      };
+        health,
+      });
 
-      const updated = await saveDailyReport(newReport);
-      setReports(updated);
+      const updatedReports = await getReportsForStudent(selectedStudentId);
+      setReports(updatedReports);
+      await refetchStudents();
+
       setTeacherNote('');
       setSelectedStudentId('');
-      alert(`AI Tahlili yakunlandi! ${targetStudent.fullName} uchun kunlik hisobot ota-ona dashboardida e'lon qilindi.`);
+      alert(`AI tahlili yakunlandi! ${targetStudent.fullName} uchun kunlik hisobot ota-ona dashboardida e'lon qilindi.`);
       setActiveTab('roster');
     } catch (err) {
       console.error(err);

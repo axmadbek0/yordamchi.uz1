@@ -3,89 +3,144 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { AuthUser, UserRole } from '../types';
+import {
+  loginRequest,
+  logoutRequest,
+  clearAuthSession,
+  fetchCurrentUser,
+  getApiErrorMessage,
+} from '../api/authApi';
+import { setUnauthorizedHandler } from '../api/axios';
+import { fetchMyChildren } from '../api/studentApi';
 
 interface AuthContextType {
   user: AuthUser | null;
-  login: (role: UserRole, schoolNumber: number, loginStr: string, passwordString: string) => Promise<boolean>;
+  login: (
+    role: UserRole,
+    schoolNumber: number,
+    loginStr: string,
+    passwordString: string
+  ) => Promise<{ ok: boolean; error?: string }>;
   logout: () => void;
   isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function mapBackendRole(role: string): UserRole {
+  if (role === 'PARENT') return 'parent';
+  if (role === 'TEACHER' || role === 'SCHOOL_ADMIN') return 'teacher';
+  return 'admin';
+}
+
+async function buildAuthUser(
+  backendUser: {
+    id: string;
+    login: string;
+    full_name: string | null;
+    role: string;
+    school_id: string | null;
+  },
+  schoolNumber: number
+): Promise<AuthUser> {
+  const authUser: AuthUser = {
+    id: backendUser.id,
+    role: mapBackendRole(backendUser.role),
+    schoolNumber,
+    schoolId: backendUser.school_id ?? undefined,
+    login: backendUser.login,
+    displayName: backendUser.full_name || backendUser.login,
+  };
+
+  if (authUser.role === 'parent') {
+    try {
+      const children = await fetchMyChildren();
+      if (children[0]) {
+        authUser.associatedStudentId = children[0].id;
+      }
+    } catch {
+      // Bolalar ro'yxati keyinroq yuklanadi
+    }
+  }
+
+  return authUser;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const logout = useCallback(() => {
+    void logoutRequest();
+    setUser(null);
+  }, []);
+
   useEffect(() => {
-    // Check if user is already logged in
-    const storedUser = localStorage.getItem('yordamchi_auth_user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error('Error parsing stored user:', e);
+    setUnauthorizedHandler(() => {
+      clearAuthSession();
+      setUser(null);
+      window.location.href = '/login';
+    });
+  }, []);
+
+  useEffect(() => {
+    const bootstrap = async () => {
+      const storedUser = localStorage.getItem('yordamchi_auth_user');
+      const token =
+        localStorage.getItem('yordamchi_auth_token') ||
+        localStorage.getItem('accessToken');
+
+      if (!storedUser || !token) {
+        setIsLoading(false);
+        return;
       }
-    }
-    setIsLoading(false);
+
+      try {
+        const parsed = JSON.parse(storedUser) as AuthUser;
+        const backendUser = await fetchCurrentUser();
+        const refreshed = await buildAuthUser(backendUser, parsed.schoolNumber);
+        setUser(refreshed);
+        localStorage.setItem('yordamchi_auth_user', JSON.stringify(refreshed));
+      } catch {
+        clearAuthSession();
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void bootstrap();
   }, []);
 
   const login = async (
-    role: UserRole,
+    _role: UserRole,
     schoolNumber: number,
     loginStr: string,
     passwordStr: string
-  ): Promise<boolean> => {
+  ): Promise<{ ok: boolean; error?: string }> => {
     setIsLoading(true);
-    
+
     try {
-      const response = await fetch('/api/v1/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          login: loginStr,
-          password: passwordStr,
-          role: role.toUpperCase()
-        })
+      const data = await loginRequest({
+        login: loginStr,
+        password: passwordStr,
       });
 
-      if (!response.ok) {
-        setIsLoading(false);
-        return false;
-      }
-
-      const data = await response.json();
-      
-      const authUser: AuthUser = {
-        id: data.user.id,
-        role: role,
-        schoolNumber: schoolNumber,
-        login: data.user.login,
-        displayName: data.user.full_name || data.user.login,
-        associatedStudentId: data.user.associatedStudentId // optionally return from backend for parents
-      };
-
+      const authUser = await buildAuthUser(data.user, schoolNumber);
       setUser(authUser);
       localStorage.setItem('yordamchi_auth_user', JSON.stringify(authUser));
-      localStorage.setItem('yordamchi_auth_token', data.token);
-
       setIsLoading(false);
-      return true;
+      return { ok: true };
     } catch (error) {
-      console.error("Login failed", error);
+      console.error('Login failed', error);
       setIsLoading(false);
-      return false;
+      return {
+        ok: false,
+        error: getApiErrorMessage(error, 'Login yoki parol xato! Iltimos, tekshirib qayta kiriting.'),
+      };
     }
-  };
-
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('yordamchi_auth_user');
-    localStorage.removeItem('yordamchi_auth_token');
   };
 
   return (
@@ -102,4 +157,3 @@ export function useAuth() {
   }
   return context;
 }
-
