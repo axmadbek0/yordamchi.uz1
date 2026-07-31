@@ -14,6 +14,8 @@ import { ParentDashboard } from './features/parent/ParentDashboard';
 import { ParentProfile } from './features/parent/ParentProfile';
 import { ChatProvider } from './components/ai-chat/ChatContext';
 import { ChatWidget } from './components/ai-chat/ChatWidget';
+import { NearbySchoolsPage } from './features/schools-directory/NearbySchoolsPage';
+import { SchoolProfilePage } from './features/schools-directory/SchoolProfilePage';
 
 /**
  * Route guard component to check roles.
@@ -49,6 +51,10 @@ export default function App() {
           <Routes>
             {/* Public Marketing Route */}
             <Route path="/" element={<HomePage />} />
+
+            {/* Public Schools Directory */}
+            <Route path="/maktablar" element={<NearbySchoolsPage />} />
+            <Route path="/maktablar/:schoolId" element={<SchoolProfilePage />} />
 
             {/* Login Route */}
             <Route path="/login" element={<LoginPage />} />

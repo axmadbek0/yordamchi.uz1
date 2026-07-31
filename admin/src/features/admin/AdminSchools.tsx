@@ -94,6 +94,11 @@ export function AdminSchools() {
   const [createdCreds, setCreatedCreds] = useState<{ login: string; password: string; schoolName: string } | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
+  // Geocoding state
+  const [geoCoords, setGeoCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const [geocodeError, setGeocodeError] = useState('');
+
   // Deactivate modal
   const [deactivateTarget, setDeactivateTarget] = useState<SchoolType | null>(null);
 
@@ -154,6 +159,7 @@ export function AdminSchools() {
       address: newSchool.address,
       phone: newSchool.phone,
       classCount: parseInt(newSchool.classCount) || 0,
+      ...(geoCoords ? { lat: geoCoords.lat, lng: geoCoords.lng } : {}),
     });
 
     setIsSaving(false);
@@ -171,6 +177,32 @@ export function AdminSchools() {
     setCreatedCreds(null);
     setNewSchool({ name: '', number: '', region: 'Toshkent shahri', district: '', address: '', phone: '', classCount: '' });
     setNumberError('');
+    setGeoCoords(null);
+    setGeocodeError('');
+  };
+
+  const handleGeocode = async () => {
+    if (!newSchool.address) return;
+    setIsGeocoding(true);
+    setGeocodeError('');
+    setGeoCoords(null);
+    try {
+      const query = encodeURIComponent(`${newSchool.address}, O'zbekiston`);
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`,
+        { headers: { 'Accept-Language': 'uz' } }
+      );
+      const data = await res.json();
+      if (data && data.length > 0) {
+        setGeoCoords({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+      } else {
+        setGeocodeError('Manzil topilmadi. Aniqroq manzil kiriting.');
+      }
+    } catch {
+      setGeocodeError('Geokodlash xatosi. Internet aloqasini tekshiring.');
+    } finally {
+      setIsGeocoding(false);
+    }
   };
 
   const handleDeactivate = () => {
@@ -440,12 +472,46 @@ export function AdminSchools() {
               value={newSchool.district}
               onChange={(e) => setNewSchool({ ...newSchool, district: e.target.value })}
             />
-            <Input
-              label="Manzil *"
-              placeholder="To'liq manzilni kiriting"
-              value={newSchool.address}
-              onChange={(e) => setNewSchool({ ...newSchool, address: e.target.value })}
-            />
+            <div>
+              <Input
+                label="Manzil *"
+                placeholder="To'liq manzilni kiriting"
+                value={newSchool.address}
+                onChange={(e) => {
+                  setNewSchool({ ...newSchool, address: e.target.value });
+                  setGeoCoords(null);
+                  setGeocodeError('');
+                }}
+              />
+              {/* Geocoding button */}
+              <div className="mt-2 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleGeocode}
+                  disabled={!newSchool.address || isGeocoding}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-primary bg-primary/8 hover:bg-primary hover:text-white px-3 py-1.5 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {isGeocoding ? (
+                    <span className="w-3 h-3 border border-primary/40 border-t-primary rounded-full animate-spin" />
+                  ) : (
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+                    </svg>
+                  )}
+                  Koordinatalarni aniqlash
+                </button>
+                {geoCoords && (
+                  <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5" />
+                    {geoCoords.lat.toFixed(4)}, {geoCoords.lng.toFixed(4)}
+                  </span>
+                )}
+                {geocodeError && (
+                  <span className="text-xs text-coral">{geocodeError}</span>
+                )}
+              </div>
+            </div>
+
             <Input
               label="Aloqa telefoni *"
               type="tel"

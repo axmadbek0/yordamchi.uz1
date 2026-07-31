@@ -53,3 +53,43 @@ export interface ChatMessage {
   text: string;
   timestamp: string;
 }
+
+// ==========================================
+// Schools Directory Types
+// ==========================================
+
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+export interface SchoolWithLocation {
+  id: string;
+  number: number;
+  name: string;
+  region: string;
+  district: string;
+  address: string;
+  phone: string;
+  classCount: number;
+  photoUrl?: string;
+  photoUrls?: string[];
+  status: 'active' | 'pending' | 'suspended';
+  teacherCount: number;
+  studentCount: number;
+  createdAt: string;
+  lat?: number;
+  lng?: number;
+  description?: string;
+  workingHours?: string;
+  foundedYear?: number;
+  isVerified?: boolean;
+  licenseNumber?: string;
+  ageRangeMin?: number;
+  ageRangeMax?: number;
+  faqItems?: FaqItem[];
+  // computed
+  distanceKm?: number;
+}
+
+export type SchoolDetail = SchoolWithLocation;

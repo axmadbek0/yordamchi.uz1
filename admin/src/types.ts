@@ -59,6 +59,11 @@ export interface ChatMessage {
 
 export type SchoolStatus = 'active' | 'pending' | 'suspended';
 
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
 export interface School {
   id: string;
   number: number;
@@ -73,6 +78,18 @@ export interface School {
   teacherCount: number;
   studentCount: number;
   createdAt: string;
+  // Map & profile extensions
+  lat?: number;
+  lng?: number;
+  description?: string;
+  workingHours?: string;
+  foundedYear?: number;
+  isVerified?: boolean;
+  licenseNumber?: string;
+  ageRangeMin?: number;
+  ageRangeMax?: number;
+  photoUrls?: string[];
+  faqItems?: FaqItem[];
 }
 
 export interface Teacher {
