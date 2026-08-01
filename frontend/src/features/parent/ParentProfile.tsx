@@ -32,6 +32,11 @@ import {
 import { motion } from 'motion/react';
 import { useChatContext } from '../../components/ai-chat/ChatContext';
 import { useNavigate } from 'react-router-dom';
+import {
+  registerForPushNotifications,
+  disablePushNotifications,
+  isPushEnabled,
+} from '@/lib/push/registerPush';
 
 export function ParentProfile() {
   const { user } = useAuth();
@@ -83,9 +88,31 @@ export function ParentProfile() {
     weeklyReport: true,
     importantAnnouncements: true,
   });
+  const [pushEnabled, setPushEnabled] = useState(() => isPushEnabled());
+  const [pushBusy, setPushBusy] = useState(false);
 
   const toggleNotification = (key: keyof typeof notifications) => {
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const togglePush = async () => {
+    setPushBusy(true);
+    try {
+      if (pushEnabled) {
+        await disablePushNotifications();
+        setPushEnabled(false);
+      } else {
+        const token = await registerForPushNotifications();
+        setPushEnabled(!!token);
+        if (!token) {
+          alert(
+            'Bildirishnoma ruxsati berilmadi. Brauzer sozlamalaridan ruxsatni yoqing yoki keyinroq qayta urinib ko‘ring.'
+          );
+        }
+      }
+    } finally {
+      setPushBusy(false);
+    }
   };
 
   const getMoodBadge = (mood?: string) => {
@@ -121,7 +148,7 @@ export function ParentProfile() {
       <div className="flex items-center justify-between">
         <button
           type="button"
-          onClick={() => navigate('/parent/dashboard')}
+          onClick={() => navigate('/parent/reports')}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white hover:bg-bg text-deep font-bold text-xs border border-primary/10 shadow-xs hover:shadow-sm transition-all cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 text-primary" /> Orqaga (Kabinetga)
@@ -220,7 +247,7 @@ export function ParentProfile() {
               <h2 className="text-lg font-bold text-deep font-serif">{currentChild.fullName} Haqida Ma'lumot</h2>
             </div>
             <button
-              onClick={() => navigate('/parent/dashboard')}
+              onClick={() => navigate('/parent/reports')}
               className="text-xs font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
             >
               To'liq Hisobot →
@@ -317,6 +344,32 @@ export function ParentProfile() {
         {/* Notification Switches */}
         <div className="space-y-3 pt-2">
           <span className="block text-xs font-bold text-deep">Xabarnoma Qabuli</span>
+
+          <div
+            onClick={() => {
+              if (!pushBusy) void togglePush();
+            }}
+            className="flex items-center justify-between p-3.5 rounded-2xl bg-primary/5 border border-primary/15 hover:border-primary/30 transition-all cursor-pointer"
+          >
+            <div>
+              <span className="text-xs font-bold text-deep block">Push bildirishnomalarni yoqish</span>
+              <span className="text-[10px] text-muted">
+                Ilova yopiq bo‘lsa ham telefoningizga xabar keladi (brauzer ruxsati kerak)
+              </span>
+            </div>
+            <div
+              className={`w-11 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out ${
+                pushEnabled ? 'bg-coral' : 'bg-slate-200'
+              } ${pushBusy ? 'opacity-50' : ''}`}
+            >
+              <motion.div
+                className="w-4 h-4 rounded-full bg-white shadow-xs"
+                animate={{ x: pushEnabled ? 20 : 0 }}
+                transition={{ duration: 0.2 }}
+              />
+            </div>
+          </div>
+
           {[
             { key: 'dailyStatus', label: 'Kunlik holat haqida sms/bildirishnoma' },
             { key: 'weeklyReport', label: 'Haftalik AI tahliliy hisoboti' },

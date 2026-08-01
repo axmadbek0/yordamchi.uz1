@@ -37,9 +37,9 @@ export function SignupPage() {
       setUser(data.user);
       
       if (data.user.role === 'PARENT') {
-        navigate('/parent/dashboard');
+        navigate('/parent/reports');
       } else {
-        navigate('/teacher/dashboard');
+        navigate('/teacher/class');
       }
     } catch (e: any) {
       setError(e.message || 'Tizimga ulanishda xatolik yuz berdi.');

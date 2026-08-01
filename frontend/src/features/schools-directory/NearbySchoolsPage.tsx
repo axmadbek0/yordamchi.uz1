@@ -70,6 +70,7 @@ export function NearbySchoolsPage() {
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [locationMode, setLocationMode] = useState<'gps' | 'manual'>('gps');
 
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -106,14 +107,40 @@ export function NearbySchoolsPage() {
     return () => clearTimeout(t);
   }, [highlightedId]);
 
+  // GPS rad etilganda avtomatik qo'lda tanlashga o'tish
+  useEffect(() => {
+    if (
+      locationState === 'denied' ||
+      locationState === 'unsupported' ||
+      locationState === 'error'
+    ) {
+      setLocationMode('manual');
+    }
+  }, [locationState]);
+
   const showLocationFallback =
-    locationState === 'denied' || locationState === 'unsupported' || locationState === 'error';
+    locationMode === 'manual' ||
+    locationState === 'denied' ||
+    locationState === 'unsupported' ||
+    locationState === 'error';
+
+  const switchToGps = () => {
+    setLocationMode('gps');
+    setSelectedRegion('');
+    setSelectedDistrict('');
+    refetch();
+  };
+
+  const switchToManual = () => {
+    setLocationMode('manual');
+  };
 
   // ————————————————————————————
   // States
   // ————————————————————————————
 
-  const isRequestingLocation = locationState === 'requesting' && isLoading;
+  const isRequestingLocation =
+    locationMode === 'gps' && locationState === 'requesting' && isLoading;
 
   if (isRequestingLocation) {
     return (
@@ -166,18 +193,48 @@ export function NearbySchoolsPage() {
           )}
         </AnimatePresence>
 
-        {/* Search + mobile tabs */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-5">
-          <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
-            <input
-              id="school-search"
-              type="text"
-              placeholder="Maktab nomi yoki tuman bo'yicha qidirish..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 text-sm text-ink bg-white border border-primary/10 rounded-xl focus:border-primary focus:outline-none transition-all shadow-sm"
-            />
+        {/* Search + location mode toggle + mobile tabs */}
+        <div className="flex flex-col gap-3 mb-5">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+              <input
+                id="school-search"
+                type="text"
+                placeholder="Maktab nomi yoki tuman bo'yicha qidirish..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 text-sm text-ink bg-white border border-primary/10 rounded-xl focus:border-primary focus:outline-none transition-all shadow-sm"
+              />
+            </div>
+
+            {/* Joriy joylashuvdan / Viloyat tanlash */}
+            <div className="flex bg-white border border-primary/10 rounded-xl p-1 shadow-sm flex-shrink-0">
+              <button
+                type="button"
+                onClick={switchToGps}
+                className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
+                  locationMode === 'gps' && locationState === 'granted'
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-muted hover:text-primary'
+                }`}
+              >
+                <Navigation className="w-3.5 h-3.5" />
+                Joriy joylashuvdan
+              </button>
+              <button
+                type="button"
+                onClick={switchToManual}
+                className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
+                  showLocationFallback
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-muted hover:text-primary'
+                }`}
+              >
+                <MapPin className="w-3.5 h-3.5" />
+                Viloyat tanlash
+              </button>
+            </div>
           </div>
 
           {/* Mobile tab toggle */}
@@ -205,18 +262,6 @@ export function NearbySchoolsPage() {
               Xarita
             </button>
           </div>
-
-          {/* Location grant button (for denied state) */}
-          {showLocationFallback && (
-            <button
-              onClick={refetch}
-              title="Joriy joylashuvdan foydalanish"
-              className="hidden sm:flex items-center gap-2 text-sm font-semibold text-primary bg-primary/8 hover:bg-primary hover:text-white px-4 py-3 rounded-xl transition-all"
-            >
-              <Navigation className="w-4 h-4" />
-              Joylashuvdan foydalanish
-            </button>
-          )}
         </div>
 
         {/* Result count */}

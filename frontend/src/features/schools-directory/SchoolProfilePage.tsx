@@ -329,23 +329,31 @@ export function SchoolProfilePage() {
           </div>
         </motion.div>
 
-        {/* ——— Description ——— */}
-        {school.description && (
+        {/* ——— Umumiy ma'lumot (bo'sh maydonlar yashiriladi) ——— */}
+        {(school.description ||
+          school.classCount > 0 ||
+          (school.ageRangeMin && school.ageRangeMax) ||
+          school.studentCount > 0) && (
           <Section title="Maktab haqida" icon={<BookOpen className="w-4 h-4" />}>
-            <p className="text-sm text-muted leading-relaxed">{school.description}</p>
+            {school.description && (
+              <p className="text-sm text-muted leading-relaxed">{school.description}</p>
+            )}
 
-            {/* Quick stats row */}
-            <div className="grid grid-cols-3 gap-3 mt-4">
-              {school.classCount > 0 && (
-                <StatBadge label="Sinflar" value={String(school.classCount)} />
-              )}
-              {school.ageRangeMin && school.ageRangeMax && (
-                <StatBadge label="Yosh" value={`${school.ageRangeMin}–${school.ageRangeMax}`} />
-              )}
-              {school.studentCount > 0 && (
-                <StatBadge label="O'quvchi" value={String(school.studentCount)} />
-              )}
-            </div>
+            {(school.classCount > 0 ||
+              (school.ageRangeMin && school.ageRangeMax) ||
+              school.studentCount > 0) && (
+              <div className={`grid grid-cols-3 gap-3 ${school.description ? 'mt-4' : ''}`}>
+                {school.classCount > 0 && (
+                  <StatBadge label="Sinflar" value={String(school.classCount)} />
+                )}
+                {school.ageRangeMin && school.ageRangeMax && (
+                  <StatBadge label="Yosh" value={`${school.ageRangeMin}–${school.ageRangeMax}`} />
+                )}
+                {school.studentCount > 0 && (
+                  <StatBadge label="O'quvchi" value={String(school.studentCount)} />
+                )}
+              </div>
+            )}
           </Section>
         )}
 

@@ -135,7 +135,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (lower.includes('hisobot') || lower.includes('grafik') || lower.includes('tahlil')) {
         actionLink = {
           label: role === 'parent' ? "Hisobotlar sahifasiga o'tish →" : "Sinf statistikasini ko'rish →",
-          url: role === 'parent' ? '/parent/dashboard' : '/teacher/dashboard',
+          url: role === 'parent' ? '/parent/reports' : '/teacher/class',
         };
       } else if (lower.includes('bog\'lan') || lower.includes('telefon') || lower.includes('maktab')) {
         actionLink = {

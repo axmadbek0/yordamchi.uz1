@@ -67,9 +67,9 @@ export function LoginPage() {
         const actualRole = parsed?.role || role;
 
         if (actualRole === 'parent') {
-          navigate('/parent/dashboard');
+          navigate('/parent/reports');
         } else {
-          navigate('/teacher/dashboard');
+          navigate('/teacher/class');
         }
       } else {
         setError(result.error || 'Login yoki parol xato! Iltimos, tekshirib qayta kiriting.');
