@@ -25,6 +25,9 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import oligofreniyaImg from '../../images/Oligofreniya.jpg';
+import { EditableText } from '@/components/admin/EditableText';
+import { EditableImage } from '@/components/admin/EditableImage';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -81,6 +84,7 @@ export function HomePage() {
   ];
 
   return (
+    <ErrorBoundary name="homepage-content">
     <div className="min-h-screen bg-bg">
       {/* Header */}
       <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-primary/5">
@@ -97,12 +101,18 @@ export function HomePage() {
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-deep">
             <a href="#about" className="hover:text-primary transition-all">Biz haqimizda</a>
             <a href="#features" className="hover:text-primary transition-all">Imkoniyatlar</a>
+            <Link to="/maktablar" className="hover:text-primary transition-all">Maktablar</Link>
             <a href="#how-it-works" className="hover:text-primary transition-all">Qanday ishlaydi?</a>
-            <a href="#team" className="hover:text-primary transition-all">Jamoa</a>
             <a href="#contact" className="hover:text-primary transition-all">Aloqa</a>
           </nav>
 
           <div className="flex items-center gap-3">
+            <Link to="/maktablar" className="hidden sm:inline-flex">
+              <Button variant="secondary" size="sm">
+                <MapPin className="w-4 h-4 mr-1.5" />
+                Yaqin maktablar
+              </Button>
+            </Link>
             <Link to="/login">
               <Button variant="outline" size="sm">
                 Kirish
@@ -124,14 +134,25 @@ export function HomePage() {
             <div className="lg:col-span-7 flex flex-col gap-6 text-left">
               <div className="inline-flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-primary/10 shadow-sm self-start">
                 <Badge variant="coral">Yangi Davr</Badge>
-                <span className="text-xs font-bold text-deep">Ijtimoiy Himoyadagi Bolalar uchun Professional Platforma</span>
+                <EditableText
+                  contentKey="homepage.hero.badge"
+                  defaultValue="Ijtimoiy Himoyadagi Bolalar uchun Professional Platforma"
+                  as="span"
+                  className="text-xs font-bold text-deep"
+                />
               </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-deep tracking-tight leading-tight font-serif">
-                Maxsus ehtiyojli bolalar tarbiyasida <span className="text-primary underline decoration-coral decoration-4">eng ishonchli</span> ko‘prik
-              </h1>
-              <p className="text-lg text-muted max-w-2xl leading-relaxed">
-                Maktab-internatlar va ota-onalar o‘rtasidagi hamkorlikni osonlashtiring. Sun’iy intellekt tahlili yordamida farzandingizning kunlik holatini oson tushuning, qulay vizual hisobotlar va amaliy tavsiyalar oling.
-              </p>
+              <EditableText
+                contentKey="homepage.hero.title"
+                defaultValue="Maxsus ehtiyojli bolalar tarbiyasida eng ishonchli ko‘prik"
+                as="h1"
+                className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-deep tracking-tight leading-tight font-serif"
+              />
+              <EditableText
+                contentKey="homepage.hero.subtitle"
+                defaultValue="Maktab-internatlar va ota-onalar o‘rtasidagi hamkorlikni osonlashtiring. Sun’iy intellekt tahlili yordamida farzandingizning kunlik holatini oson tushuning, qulay vizual hisobotlar va amaliy tavsiyalar oling."
+                as="p"
+                className="text-lg text-muted max-w-2xl leading-relaxed"
+              />
               <div className="flex flex-col sm:flex-row gap-4 mt-2">
                 <Link to="/login">
                   <Button variant="primary" size="lg" className="w-full sm:w-auto gap-2">
@@ -166,9 +187,10 @@ export function HomePage() {
                 className="bg-white rounded-[2rem] p-3 border border-primary/20 shadow-2xl relative"
                 style={{ transformStyle: 'preserve-3d' }}
               >
-                <img 
-                  src={oligofreniyaImg} 
-                  alt="Maxsus ta'lim" 
+                <EditableImage
+                  contentKey="homepage.hero.image"
+                  defaultSrc={oligofreniyaImg}
+                  alt="Maxsus ta'lim"
                   className="w-full h-auto rounded-3xl object-cover shadow-inner"
                 />
                 
@@ -189,17 +211,61 @@ export function HomePage() {
         </div>
       </section>
 
+      {/* Nearby Schools CTA */}
+      <section className="py-16 bg-gradient-to-br from-deep via-primary to-[#1E5F9A] relative overflow-hidden">
+        <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-white/5" />
+        <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-white/5" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="text-center md:text-left max-w-xl">
+              <div className="inline-flex items-center gap-2 bg-white/10 text-white/90 text-xs font-bold px-3 py-1.5 rounded-full mb-4">
+                <MapPin className="w-3.5 h-3.5" />
+                Joylashuv asosida
+              </div>
+              <EditableText
+                contentKey="homepage.schools_cta.title"
+                defaultValue="Yaqin atrofdagi maxsus maktablarni toping"
+                as="h2"
+                className="text-2xl sm:text-3xl font-extrabold text-white font-serif mb-3"
+              />
+              <EditableText
+                contentKey="homepage.schools_cta.subtitle"
+                defaultValue="Xarita va ro‘yxat orqali sizga eng yaqin ixtisoslashtirilgan maktab-internatlarni ko‘ring, manzil, telefon va batafsil ma’lumotlarni bir joyda oling."
+                as="p"
+                className="text-white/70 text-sm sm:text-base leading-relaxed"
+              />
+            </div>
+            <Button
+              variant="coral"
+              size="lg"
+              className="shadow-xl shadow-coral/25 flex-shrink-0"
+              onClick={() => navigate('/maktablar')}
+            >
+              <School className="w-5 h-5 mr-2" />
+              Maktablarni ko‘rish
+              <ChevronRight className="w-5 h-5 ml-1" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* About Section */}
       <section id="about" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto flex flex-col gap-4 mb-16">
             <Badge variant="primary" className="self-center">Biz haqimizda</Badge>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-deep font-serif">
-              Platformaning maqsadi va ijtimoiy missiyamiz
-            </h2>
-            <p className="text-lg text-muted leading-relaxed">
-              Yordamchi med maxsus pedagogik ta’lim tizimini raqamlashtirish va imkoniyati cheklangan bolalarning ota-onalariga daldalanish maqsadida tashkil etilgan. Biz murakkab klinik tahlillarni ota-onalarga iliq va tushunarli tarzda taqdim etib, uy va maktab o‘rtasida uzluksiz hamkorlikni ta’minlaymiz.
-            </p>
+            <EditableText
+              contentKey="homepage.about.title"
+              defaultValue="Platformaning maqsadi va ijtimoiy missiyamiz"
+              as="h2"
+              className="text-3xl sm:text-4xl font-extrabold text-deep font-serif"
+            />
+            <EditableText
+              contentKey="homepage.about.body"
+              defaultValue="Yordamchi med maxsus pedagogik ta’lim tizimini raqamlashtirish va imkoniyati cheklangan bolalarning ota-onalariga daldalanish maqsadida tashkil etilgan. Biz murakkab klinik tahlillarni ota-onalarga iliq va tushunarli tarzda taqdim etib, uy va maktab o‘rtasida uzluksiz hamkorlikni ta’minlaymiz."
+              as="p"
+              className="text-lg text-muted leading-relaxed"
+            />
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -329,7 +395,7 @@ export function HomePage() {
               <div className="w-24 h-24 rounded-full bg-coral text-white flex items-center justify-center mb-4 text-3xl font-bold shadow-md shadow-coral/30">
                 UM
               </div>
-              <h4 className="text-xl font-bold text-deep">Urmanova Madinabonu</h4>
+              <h4 className="text-xl font-bold text-deep">Urmonova Madinabonu</h4>
               <Badge variant="coral" className="mt-2 mb-4">Frontend Dasturchi</Badge>
               <p className="text-sm text-muted font-medium">
                 Frontend Dasturchi
@@ -458,5 +524,6 @@ export function HomePage() {
         </div>
       </footer>
     </div>
+    </ErrorBoundary>
   );
 }

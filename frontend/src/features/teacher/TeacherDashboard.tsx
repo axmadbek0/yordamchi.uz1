@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../lib/auth';
 import { saveStudent, getReportsForStudent } from '../../lib/db';
 import { submitDailyLog } from '../../api/studentApi';
@@ -27,7 +27,6 @@ import {
   Meh,
   Frown,
   Activity,
-  LogOut,
   Phone,
   FileText,
   Printer,
@@ -36,18 +35,18 @@ import {
   BarChart,
   Calendar,
   User,
-  Video,
-  Camera,
-  Maximize2,
-  Volume2
+  Bell,
+  MoreHorizontal,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useChatContext } from '../../components/ai-chat/ChatContext';
+import { SendNotificationModal } from './SendNotificationModal';
 
 
 export function TeacherDashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { setContextInfo } = useChatContext();
   const [students, setStudents] = useState<Student[]>([]);
   const [reports, setReports] = useState<DailyStatusEntry[]>([]);
@@ -71,8 +70,16 @@ export function TeacherDashboard() {
   const [selectedHealth, setSelectedHealth] = useState<'sog‘lom' | 'yengil bezovta' | 'betob'>('sog‘lom');
   const [teacherNote, setTeacherNote] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'roster' | 'entry' | 'stats' | 'cameras'>('roster');
+  const [notifyOpen, setNotifyOpen] = useState(false);
+  const [notifyStudentId, setNotifyStudentId] = useState<string | null>(null);
+  const [rowMenuId, setRowMenuId] = useState<string | null>(null);
 
+  const activeTab: 'roster' | 'entry' | 'stats' =
+    location.pathname.includes('/daily-status')
+      ? 'entry'
+      : location.pathname.includes('/reports')
+        ? 'stats'
+        : 'roster';
 
   useEffect(() => {
     if (studentsData) {
@@ -81,8 +88,8 @@ export function TeacherDashboard() {
   }, [studentsData]);
 
   useEffect(() => {
-    setContextInfo('teacher', '/teacher/dashboard');
-  }, [setContextInfo]);
+    setContextInfo('teacher', location.pathname);
+  }, [setContextInfo, location.pathname]);
 
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,7 +158,7 @@ export function TeacherDashboard() {
       setTeacherNote('');
       setSelectedStudentId('');
       alert(`AI tahlili yakunlandi! ${targetStudent.fullName} uchun kunlik hisobot ota-ona dashboardida e'lon qilindi.`);
-      setActiveTab('roster');
+      navigate('/teacher/class');
     } catch (err) {
       console.error(err);
       alert("Xatolik yuz berdi. Iltimos qayta urining.");
@@ -176,145 +183,7 @@ export function TeacherDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col md:flex-row font-sans text-ink">
-      {/* Sidebar Navigation for Desktop */}
-      <aside className="w-64 bg-deep flex flex-col h-screen sticky top-0 shrink-0 text-[#D3E6F5] hidden md:flex z-20 shadow-xl border-r border-cardBlue/10">
-        <div className="p-6">
-          <h1 className="text-white font-serif text-2xl italic tracking-tight">Yordamchi <span className="text-red-500 text-sm">med</span></h1>
-          <p className="text-[#D3E6F5] text-[10px] uppercase tracking-widest mt-1 opacity-70">O‘qituvchi Kabineti</p>
-        </div>
-        <nav className="flex-1 px-4 mt-6 space-y-2">
-          <button
-            onClick={() => setActiveTab('roster')}
-            className={`w-full flex items-center space-x-3 p-3 rounded-xl transition-all cursor-pointer text-left ${
-              activeTab === 'roster' ? 'bg-[#1B6FA8] text-white font-medium shadow-md shadow-primary/25' : 'text-[#D3E6F5] hover:bg-[#1B6FA8]/20'
-            }`}
-          >
-            <Users className="w-5 h-5 shrink-0" />
-            <span className="font-semibold text-sm">Mening Sinfim</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('entry')}
-            className={`w-full flex items-center space-x-3 p-3 rounded-xl transition-all cursor-pointer text-left ${
-              activeTab === 'entry' ? 'bg-[#1B6FA8] text-white font-medium shadow-md shadow-primary/25' : 'text-[#D3E6F5] hover:bg-[#1B6FA8]/20'
-            }`}
-          >
-            <ClipboardList className="w-5 h-5 shrink-0" />
-            <span className="font-semibold text-sm">Kunlik Qaydlar</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('stats')}
-            className={`w-full flex items-center space-x-3 p-3 rounded-xl transition-all cursor-pointer text-left ${
-              activeTab === 'stats' ? 'bg-[#1B6FA8] text-white font-medium shadow-md shadow-primary/25' : 'text-[#D3E6F5] hover:bg-[#1B6FA8]/20'
-            }`}
-          >
-            <BarChart className="w-5 h-5 shrink-0" />
-            <span className="font-semibold text-sm">Sinf Hisoboti</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('cameras')}
-            className={`w-full flex items-center space-x-3 p-3 rounded-xl transition-all cursor-pointer text-left ${
-              activeTab === 'cameras' ? 'bg-[#1B6FA8] text-white font-medium shadow-md shadow-primary/25' : 'text-[#D3E6F5] hover:bg-[#1B6FA8]/20'
-            }`}
-          >
-            <Video className="w-5 h-5 shrink-0" />
-            <span className="font-semibold text-sm">Sinf Kamerasi</span>
-          </button>
-          <button
-            onClick={() => navigate('/teacher/profile')}
-            className="w-full flex items-center space-x-3 p-3 rounded-xl transition-all cursor-pointer text-left text-[#D3E6F5] hover:bg-[#1B6FA8]/20"
-          >
-            <User className="w-5 h-5 shrink-0" />
-            <span className="font-semibold text-sm">Mening Profilim</span>
-          </button>
-        </nav>
-        <div className="p-6 border-t border-[#D3E6F5]/10 flex flex-col gap-4">
-          <div
-            onClick={() => navigate('/teacher/profile')}
-            className="flex items-center space-x-3 text-white cursor-pointer hover:bg-white/5 p-1.5 rounded-xl transition-colors"
-          >
-            <div className="w-10 h-10 bg-coral rounded-full flex items-center justify-center font-bold text-white uppercase shadow-md shadow-coral/25 shrink-0">
-              {user?.displayName ? user.displayName.slice(0, 2) : 'O‘'}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold truncate leading-tight text-white">{user?.displayName || 'O‘qituvchi'}</p>
-              <p className="text-[10px] text-[#D3E6F5] opacity-60 truncate">Sinf rahbari • Profil →</p>
-            </div>
-          </div>
-          <button
-            onClick={logout}
-            className="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-coral/30 text-coral hover:bg-coral/10 hover:border-coral rounded-xl text-xs font-bold transition-all cursor-pointer"
-          >
-            <LogOut className="w-3.5 h-3.5" /> Chiqish
-          </button>
-        </div>
-      </aside>
-
-      {/* Mobile Top Header */}
-      <header className="md:hidden bg-white border-b border-primary/5 sticky top-0 z-10 shadow-sm flex items-center justify-between p-4 shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="bg-primary text-white rounded-full p-2">
-            <School className="w-4 h-4" />
-          </div>
-          <div>
-            <span className="text-sm font-black text-deep block leading-tight font-serif">YORDAMCHI <span className="text-red-500 text-[10px]">MED</span></span>
-            <span className="text-[10px] text-muted">№{user?.schoolNumber || 12}-Maktab</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => navigate('/teacher/profile')}
-            className="text-primary text-xs font-bold py-1.5 px-3 hover:bg-primary/5 rounded-lg flex items-center gap-1 cursor-pointer"
-          >
-            <User className="w-3.5 h-3.5" /> Profil
-          </button>
-          <button
-            onClick={logout}
-            className="text-coral text-xs font-bold py-1.5 px-3 hover:bg-coral/5 rounded-lg flex items-center gap-1 cursor-pointer"
-          >
-            <LogOut className="w-3.5 h-3.5" /> Chiqish
-          </button>
-        </div>
-      </header>
-
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col p-4 sm:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
-        {/* Navigation tabs for Mobile Only */}
-        <div className="flex md:hidden bg-white rounded-2xl p-1 mb-6 shadow-sm border border-cardBlue/50 shrink-0">
-          <button
-            onClick={() => setActiveTab('roster')}
-            className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === 'roster' ? 'bg-primary text-white shadow-md' : 'text-muted'
-            }`}
-          >
-            <Users className="w-4 h-4" /> Sinfim
-          </button>
-          <button
-            onClick={() => setActiveTab('entry')}
-            className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === 'entry' ? 'bg-primary text-white shadow-md' : 'text-muted'
-            }`}
-          >
-            <ClipboardList className="w-4 h-4" /> Qaydlar
-          </button>
-          <button
-            onClick={() => setActiveTab('stats')}
-            className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === 'stats' ? 'bg-primary text-white shadow-md' : 'text-muted'
-            }`}
-          >
-            <BarChart className="w-4 h-4" /> Hisobot
-          </button>
-          <button
-            onClick={() => setActiveTab('cameras')}
-            className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === 'cameras' ? 'bg-primary text-white shadow-md' : 'text-muted'
-            }`}
-          >
-            <Video className="w-4 h-4" /> Kamera
-          </button>
-        </div>
-
+    <>
         {/* Dynamic Section Header */}
         <header className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
           <div>
@@ -322,19 +191,30 @@ export function TeacherDashboard() {
               {activeTab === 'roster' && 'Mening Sinfim'}
               {activeTab === 'entry' && 'Kunlik Qaydlar'}
               {activeTab === 'stats' && 'Sinf Bo‘yicha Hisobot'}
-              {activeTab === 'cameras' && 'Sinf Xonasi Kamerasi'}
             </h2>
             <p className="text-muted text-xs sm:text-sm mt-1">
               {activeTab === 'roster' && `Maktab №${user?.schoolNumber || 12} • Bugun ${students.length} nafar o‘quvchidan ${reports.filter(r => r.date === new Date().toISOString().split('T')[0]).length} tasida qayd etildi`}
               {activeTab === 'entry' && 'O‘quvchilarning dars davomidagi holatini kiritish va tahlil qilish bo‘limi'}
               {activeTab === 'stats' && 'Sinf faolligi va kunlik emotsional ko‘rsatkichlar tahlili'}
-              {activeTab === 'cameras' && 'Sinf xonasi va mashg\'ulot hududining real-vaqtdagi kuzatuv kameralari'}
             </p>
           </div>
           {activeTab === 'roster' && (
-            <Button variant="coral" size="md" className="gap-2 self-start sm:self-center shadow-lg shadow-coral/10 hover:brightness-110 font-bold" onClick={() => setIsAddModalOpen(true)}>
-              <span className="text-xl leading-none font-black">+</span> Yangi o‘quvchi qo‘shish
-            </Button>
+            <div className="flex flex-wrap gap-2 self-start sm:self-center">
+              <Button
+                variant="primary"
+                size="md"
+                className="gap-2 font-bold"
+                onClick={() => {
+                  setNotifyStudentId(null);
+                  setNotifyOpen(true);
+                }}
+              >
+                <Bell className="w-4 h-4" /> Bildirishnoma yuborish
+              </Button>
+              <Button variant="coral" size="md" className="gap-2 shadow-lg shadow-coral/10 hover:brightness-110 font-bold" onClick={() => setIsAddModalOpen(true)}>
+                <span className="text-xl leading-none font-black">+</span> Yangi o‘quvchi qo‘shish
+              </Button>
+            </div>
           )}
         </header>
 
@@ -442,21 +322,51 @@ export function TeacherDashboard() {
                                 )}
                               </td>
                               <td className="px-6 py-4 text-right">
-                                {hasTodayReport ? (
-                                  <span className="text-emerald-600 text-xs font-bold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">Yuborildi</span>
-                                ) : (
-                                  <Button
-                                    variant="primary"
-                                    size="sm"
-                                    className="!py-1.5 !px-3 min-h-0 text-xs font-bold rounded-full shadow-sm"
-                                    onClick={() => {
-                                      setSelectedStudentId(student.id);
-                                      setActiveTab('entry');
-                                    }}
-                                  >
-                                    <ClipboardList className="w-3.5 h-3.5 mr-1" /> Qayd etish
-                                  </Button>
-                                )}
+                                <div className="flex items-center justify-end gap-2">
+                                  {hasTodayReport ? (
+                                    <span className="text-emerald-600 text-xs font-bold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">Yuborildi</span>
+                                  ) : (
+                                    <Button
+                                      variant="primary"
+                                      size="sm"
+                                      className="!py-1.5 !px-3 min-h-0 text-xs font-bold rounded-full shadow-sm"
+                                      onClick={() => {
+                                        setSelectedStudentId(student.id);
+                                        navigate('/teacher/daily-status');
+                                      }}
+                                    >
+                                      <ClipboardList className="w-3.5 h-3.5 mr-1" /> Qayd etish
+                                    </Button>
+                                  )}
+                                  <div className="relative">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setRowMenuId((id) => (id === student.id ? null : student.id))
+                                      }
+                                      className="p-1.5 rounded-lg hover:bg-primary/10 text-muted hover:text-primary cursor-pointer"
+                                      aria-label="Amallar"
+                                    >
+                                      <MoreHorizontal className="w-4 h-4" />
+                                    </button>
+                                    {rowMenuId === student.id && (
+                                      <div className="absolute right-0 top-full mt-1 z-20 w-52 bg-white border border-primary/10 rounded-xl shadow-lg py-1">
+                                        <button
+                                          type="button"
+                                          className="w-full text-left px-3 py-2.5 text-xs font-semibold text-deep hover:bg-primary/5 flex items-center gap-2 cursor-pointer"
+                                          onClick={() => {
+                                            setRowMenuId(null);
+                                            setNotifyStudentId(student.id);
+                                            setNotifyOpen(true);
+                                          }}
+                                        >
+                                          <Bell className="w-3.5 h-3.5 text-primary" />
+                                          Bildirishnoma yuborish
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
                               </td>
                             </tr>
                           );
@@ -486,23 +396,34 @@ export function TeacherDashboard() {
                               {student.credentialsActivated ? 'Faol' : 'Kutilmoqda'}
                             </Badge>
                           </div>
-                          <div className="text-xs text-muted border-t border-dashed border-cardBlue/50 pt-2 flex justify-between items-center">
+                          <div className="text-xs text-muted border-t border-dashed border-cardBlue/50 pt-2 flex justify-between items-center gap-2">
                             <span>Tel: {student.parentPhone}</span>
-                            {hasTodayReport && lastReport ? (
-                              <span className="font-bold text-primary">{moodEmojis[lastReport.mood]} {lastReport.mood}</span>
-                            ) : (
+                            <div className="flex items-center gap-1.5">
+                              {!hasTodayReport && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="!py-1 !px-2 min-h-0 text-[10px] rounded-full"
+                                  onClick={() => {
+                                    setSelectedStudentId(student.id);
+                                    navigate('/teacher/daily-status');
+                                  }}
+                                >
+                                  Qayd etish
+                                </Button>
+                              )}
                               <Button
-                                variant="outline"
+                                variant="primary"
                                 size="sm"
                                 className="!py-1 !px-2 min-h-0 text-[10px] rounded-full"
                                 onClick={() => {
-                                  setSelectedStudentId(student.id);
-                                  setActiveTab('entry');
+                                  setNotifyStudentId(student.id);
+                                  setNotifyOpen(true);
                                 }}
                               >
-                                Qayd etish
+                                <Bell className="w-3 h-3 mr-0.5" /> Xabar
                               </Button>
-                            )}
+                            </div>
                           </div>
                         </div>
                       );
@@ -531,7 +452,7 @@ export function TeacherDashboard() {
                 <div className="relative z-10 flex items-center justify-between mt-auto">
                   <div className="text-xs text-white/70 italic">Haftalik trend +12%</div>
                   <button 
-                    onClick={() => setActiveTab('stats')}
+                    onClick={() => navigate('/teacher/reports')}
                     className="text-xs bg-white text-primary px-3 py-1.5 rounded-full font-bold cursor-pointer hover:bg-white/90 transition-all shadow-md"
                   >
                     Batafsil
@@ -782,101 +703,16 @@ export function TeacherDashboard() {
           </div>
         )}
 
-        {/* Tab 4: Classroom Cameras View */}
-        {activeTab === 'cameras' && (
-          <div className="flex-1 flex flex-col gap-6 w-full">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 rounded-3xl border border-cardBlue shadow-xs">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-bold text-deep font-serif">Sinf Xonasi va Mashg'ulot Kamerasi</h3>
-                  <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Live Stream
-                  </span>
-                </div>
-                <p className="text-xs text-muted mt-1">
-                  №{user?.schoolNumber || 12}-sonli maktab • Sinf xonasidagi onlayn kuzatuv kameralari va mashg'ulot nazorati
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold bg-bg px-3 py-1.5 rounded-xl text-deep border border-primary/10">
-                  {new Date().toLocaleTimeString('uz-UZ')}
-                </span>
-              </div>
-            </div>
-
-            {/* Camera Feeds Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {[
-                { id: 1, name: "Doska va O'qituvchi Minbari", detail: "Sinf doskasi va asosiy o'quv maydoni" },
-                { id: 2, name: "O'quvchilar Mashg'ulot Stollari", detail: "Partalar va guruhli dars bajarish zonasi" },
-                { id: 3, name: "Sensor & Psixologik O'yin Burchagi", detail: "Yumshoq gilamcha va motorika jihozlari" },
-                { id: 4, name: "Kirish va Dam Olish Hududi", detail: "Sinfga kirish va kiyim almashtirish sohasi" },
-              ].map((cam) => (
-                <div key={cam.id} className="bg-white rounded-3xl border border-cardBlue overflow-hidden shadow-sm flex flex-col group">
-                  <div className="bg-slate-950 relative aspect-video flex items-center justify-center">
-                    {/* LIVE Badge */}
-                    <div className="absolute top-4 right-4 flex items-center gap-2 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/10">
-                      <span className="w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
-                      <span className="text-white text-[10px] font-mono font-bold tracking-wider">LIVE 1080p</span>
-                    </div>
-
-                    <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-full text-white/90 text-xs font-bold font-serif">
-                      Kamera #{cam.id}
-                    </div>
-
-                    {/* Video Placeholder Content */}
-                    <div className="text-center p-6 space-y-3">
-                      <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-white/40 group-hover:scale-110 transition-transform">
-                        <Video className="w-8 h-8" />
-                      </div>
-                      <p className="text-xs text-white/60 font-mono">Sinf stream oqimi faol kutilmoqda...</p>
-                    </div>
-
-                    {/* Control Bar overlay on camera stream bottom */}
-                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between bg-black/60 backdrop-blur-md px-3 py-2 rounded-2xl border border-white/10 text-white text-xs">
-                      <span className="text-[11px] font-medium text-white/80">{cam.name}</span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => alert(`Kamera #${cam.id} ovozi yoqildi`)}
-                          className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                          title="Ovozni eshitish"
-                        >
-                          <Volume2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => alert(`Kamera #${cam.id} rasmga olindi`)}
-                          className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                          title="Foto snapshot olish"
-                        >
-                          <Camera className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => alert(`Kamera #${cam.id} to'liq ekranga o'tkazildi`)}
-                          className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                          title="To'liq ekranga yoyish"
-                        >
-                          <Maximize2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 flex items-center justify-between bg-white border-t border-cardBlue/50">
-                    <div>
-                      <h4 className="font-bold text-deep text-sm">{cam.name}</h4>
-                      <p className="text-xs text-muted">{cam.detail}</p>
-                    </div>
-                    <Badge variant="success" className="text-[10px] uppercase font-bold">Faol</Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </main>
+      <SendNotificationModal
+        isOpen={notifyOpen}
+        onClose={() => setNotifyOpen(false)}
+        students={students}
+        preselectedStudentId={notifyStudentId}
+        teacherId={user?.id || 'teacher'}
+        teacherName={user?.displayName || 'O‘qituvchi'}
+        schoolId={user?.schoolId || `sch-${user?.schoolNumber || 12}`}
+        schoolNumber={user?.schoolNumber || 12}
+      />
 
       {/* Add Student Modal */}
       <Modal isOpen={isAddModalOpen} onClose={handleCloseAddModal} title="Yangi o‘quvchi qo‘shish">
@@ -984,6 +820,6 @@ export function TeacherDashboard() {
           </div>
         )}
       </Modal>
-    </div>
+    </>
   );
 }

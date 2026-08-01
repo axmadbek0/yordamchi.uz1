@@ -126,7 +126,7 @@ export function TeacherProfile() {
       <div className="flex items-center justify-between">
         <button
           type="button"
-          onClick={() => navigate('/teacher/dashboard')}
+          onClick={() => navigate('/teacher/class')}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white hover:bg-bg text-deep font-bold text-xs border border-primary/10 shadow-xs hover:shadow-sm transition-all cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 text-primary" /> Orqaga (Kabinetga)
