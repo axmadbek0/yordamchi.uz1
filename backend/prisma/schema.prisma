@@ -3,21 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
-}
-
-enum Role {
-  SUPER_ADMIN
-  SCHOOL_ADMIN
-  TEACHER
-  PARENT
-}
-
-enum SenderType {
-  USER
-  AI
-  ADMIN
 }
 
 model School {
@@ -34,9 +21,9 @@ model School {
 
 model User {
   id            String    @id @default(uuid())
-  login         String    @unique // e.g. "umumi" or "12_001"
+  login         String    @unique
   password_hash String
-  role          Role
+  role          String    @default("PARENT")
   full_name     String?
   phone         String?
   created_at    DateTime  @default(now())
@@ -67,7 +54,7 @@ model Student {
   id            String    @id @default(uuid())
   first_name    String
   last_name     String
-  class_name    String    // e.g. "2-A sinf"
+  class_name    String
   diagnosis     String?
   dob           DateTime?
   created_at    DateTime  @default(now())
@@ -87,7 +74,7 @@ model DailyLog {
   mood          String
   health        String
   teacher_note  String
-  ai_analysis   String?   @db.Text
+  ai_analysis   String?
   date          DateTime  @default(now())
 
   student_id    String
@@ -106,8 +93,8 @@ model Chat {
 
 model Message {
   id          String     @id @default(uuid())
-  sender_type SenderType
-  content     String     @db.Text
+  sender_type String     @default("USER")
+  content     String
   created_at  DateTime   @default(now())
 
   chat_id     String

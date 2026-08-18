@@ -19,9 +19,9 @@ interface AuthContextType {
   user: AuthUser | null;
   login: (
     role: UserRole,
-    schoolNumber: number,
     loginStr: string,
-    passwordString: string
+    passwordString: string,
+    schoolNumber?: number
   ) => Promise<{ ok: boolean; error?: string }>;
   logout: () => void;
   isLoading: boolean;
@@ -43,12 +43,12 @@ async function buildAuthUser(
     role: string;
     school_id: string | null;
   },
-  schoolNumber: number
+  schoolNumber?: number
 ): Promise<AuthUser> {
   const authUser: AuthUser = {
     id: backendUser.id,
     role: mapBackendRole(backendUser.role),
-    schoolNumber,
+    schoolNumber: schoolNumber || 12,
     schoolId: backendUser.school_id ?? undefined,
     login: backendUser.login,
     displayName: backendUser.full_name || backendUser.login,
@@ -116,9 +116,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (
     _role: UserRole,
-    schoolNumber: number,
     loginStr: string,
-    passwordStr: string
+    passwordStr: string,
+    schoolNumber?: number
   ): Promise<{ ok: boolean; error?: string }> => {
     setIsLoading(true);
 

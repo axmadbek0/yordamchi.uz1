@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { Role } from '@prisma/client';
+import { Role } from '../types/auth.types';
 import { prisma } from '../lib/prisma';
 import { AuthRequest } from '../types/auth.types';
 import { hashPassword } from '../utils/hash';
@@ -13,7 +13,7 @@ function sanitizeUser(user: {
   id: string;
   login: string;
   full_name: string | null;
-  role: Role;
+  role: Role | string;
   school_id: string | null;
   phone: string | null;
 }) {
@@ -21,7 +21,7 @@ function sanitizeUser(user: {
     id: user.id,
     login: user.login,
     full_name: user.full_name,
-    role: user.role,
+    role: user.role as Role,
     school_id: user.school_id,
     phone: user.phone,
   };

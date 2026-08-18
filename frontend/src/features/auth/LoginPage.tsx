@@ -16,7 +16,6 @@ export function LoginPage() {
   const navigate = useNavigate();
 
   const [role, setRole] = useState<'parent' | 'teacher'>('parent');
-  const [schoolNumber, setSchoolNumber] = useState('12');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   
@@ -24,30 +23,10 @@ export function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Auto-fill — seed bilan bir xil parol
-  const fillCredentials = (type: 'parent' | 'teacher') => {
-    if (type === 'parent') {
-      setRole('parent');
-      setSchoolNumber('12');
-      setUsername('12_001');
-      setPassword('123456');
-    } else {
-      setRole('teacher');
-      setSchoolNumber('12');
-      setUsername('umumi');
-      setPassword('123456');
-    }
-    setError('');
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!schoolNumber || isNaN(Number(schoolNumber))) {
-      setError('Maktab raqami to‘g‘ri kiritilishi shart (faqat raqam).');
-      return;
-    }
     if (!username) {
       setError('Login maydoni majburiy.');
       return;
@@ -59,7 +38,7 @@ export function LoginPage() {
 
     setIsLoading(true);
     try {
-      const result = await login(role, Number(schoolNumber), username, password);
+      const result = await login(role, username, password);
       if (result.ok) {
         // Backend dagi haqiqiy rol bo'yicha yo'naltirish (UI dagi role faqat UX)
         const stored = localStorage.getItem('yordamchi_auth_user');
@@ -144,16 +123,6 @@ export function LoginPage() {
                 </div>
               )}
 
-              {/* School code */}
-              <Input
-                label="Maktab raqami"
-                type="number"
-                placeholder="Masalan: 12"
-                value={schoolNumber}
-                onChange={(e) => setSchoolNumber(e.target.value)}
-                required
-              />
-
               {/* Login */}
               <Input
                 label="Login"
@@ -182,28 +151,7 @@ export function LoginPage() {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-
-              {/* Quick credentials helper for test */}
-              <div className="bg-bg/50 rounded-xl p-3 border border-primary/10 mt-2">
-                <p className="text-[11px] font-bold text-deep uppercase tracking-wider mb-2">Tezkor kirish (Sinov uchun):</p>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => fillCredentials('parent')}
-                    className="flex-1 text-[11px] font-semibold bg-white border border-primary/10 hover:bg-primary/5 py-1 px-2 rounded-lg text-primary transition-all cursor-pointer"
-                  >
-                    Ota-ona loginini to‘ldirish
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => fillCredentials('teacher')}
-                    className="flex-1 text-[11px] font-semibold bg-white border border-primary/10 hover:bg-primary/5 py-1 px-2 rounded-lg text-coral transition-all cursor-pointer"
-                  >
-                    O‘qituvchi loginini to‘ldirish
-                  </button>
-                </div>
-              </div>
-
+            
               <Button variant="primary" size="lg" fullWidth type="submit" disabled={isLoading} className="mt-4">
                 {isLoading ? 'Yuklanmoqda...' : 'Kirish'}
               </Button>

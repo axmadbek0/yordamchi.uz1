@@ -43,7 +43,7 @@ export function SendNotificationModal({
   const [step, setStep] = useState<Step>('compose');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [type, setType] = useState<NotificationType>('pickup_request');
-  const [pickupReason, setPickupReason] = useState(PICKUP_REASONS[0].value);
+  const [pickupReason, setPickupReason] = useState<string>(PICKUP_REASONS[0].value);
   const [pickupTime, setPickupTime] = useState('15:00');
   const [extraNote, setExtraNote] = useState('');
   const [title, setTitle] = useState('');

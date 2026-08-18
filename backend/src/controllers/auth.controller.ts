@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
-import { Role } from '@prisma/client';
+import { Role } from '../types/auth.types';
 import { prisma } from '../lib/prisma';
 import { comparePassword } from '../utils/hash';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt';
@@ -33,7 +33,7 @@ function toPublicUser(user: {
   id: string;
   login: string;
   full_name: string | null;
-  role: Role;
+  role: Role | string;
   school_id: string | null;
   phone: string | null;
 }) {
@@ -41,7 +41,7 @@ function toPublicUser(user: {
     id: user.id,
     login: user.login,
     full_name: user.full_name,
-    role: user.role,
+    role: user.role as Role,
     school_id: user.school_id,
     phone: user.phone,
   };
@@ -49,14 +49,14 @@ function toPublicUser(user: {
 
 async function issueTokens(user: {
   id: string;
-  role: Role;
+  role: Role | string;
   school_id: string | null;
 }) {
   const jti = crypto.randomUUID();
 
   const accessToken = signAccessToken({
     sub: user.id,
-    role: user.role,
+    role: user.role as Role,
     school_id: user.school_id,
   });
 

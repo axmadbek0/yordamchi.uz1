@@ -34,15 +34,14 @@ if (process.env.TRUST_PROXY === 'true' || isProduction) {
 // 1) CORS — barcha middleware va routelardan OLDIN
 app.use(
   cors({
-    origin: [
-      'http://localhost:3000',
-      'http://127.0.0.1:3000',
-      process.env.FRONTEND_URL || 'http://localhost:3000',
-      process.env.ADMIN_URL || 'http://localhost:5174',
-    ].filter(Boolean),
+    origin: (origin, callback) => {
+      // allow requests with no origin (like mobile apps, curl, postman)
+      if (!origin) return callback(null, true);
+      return callback(null, true);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   })
 );
 
@@ -74,12 +73,25 @@ app.get('/', (_req: Request, res: Response) => {
   });
 });
 
+// Dual mounting: /api/... hamda /... (proxy mosligi uchun)
+app.use('/auth', authRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/v1/auth', authRoutes);
+
+app.use('/students', studentRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/v1/students', studentRoutes);
+
+app.use('/daily-logs', dailyLogRoutes);
+app.use('/api/daily-logs', dailyLogRoutes);
 app.use('/api/v1/daily-logs', dailyLogRoutes);
+
+app.use('/chats', chatRoutes);
+app.use('/api/chats', chatRoutes);
 app.use('/api/v1/chats', chatRoutes);
+
+app.use('/ai', aiRoutes);
+app.use('/api/ai', aiRoutes);
 app.use('/api/v1/ai', aiRoutes);
 
 app.use(notFoundHandler);
@@ -113,7 +125,7 @@ httpServer.listen(port, () => {
   console.log(
     `[server] ${isProduction ? 'production' : 'development'} rejimida http://localhost:${port}`
   );
-  console.log(`[cors] http://localhost:3000 ruxsat berilgan (credentials: true)`);
+  console.log(`[cors] Barcha domenlar va localhost portlari ruxsat berilgan (credentials: true)`);
 });
 
 export { app, httpServer, io };

@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-import { useAuth } from '../../lib/auth';
+import { persistAuthSession } from '../../api/authApi';
 import { Card } from '../../components/ui/Card';
 import { Heart, ArrowLeft, ShieldAlert } from 'lucide-react';
 
 export function SignupPage() {
-  const { setToken, setUser } = useAuth();
   const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -32,11 +31,14 @@ export function SignupPage() {
       }
 
       // Automatically login the user
-      localStorage.setItem('yordamchi_token', data.token);
-      setToken(data.token);
-      setUser(data.user);
+      persistAuthSession({
+        accessToken: data.token,
+        token: data.token,
+        user: data.user,
+        message: data.message || 'Success',
+      });
       
-      if (data.user.role === 'PARENT') {
+      if (data.user?.role === 'PARENT' || data.user?.role === 'parent') {
         navigate('/parent/reports');
       } else {
         navigate('/teacher/class');

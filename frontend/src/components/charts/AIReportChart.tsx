@@ -31,7 +31,7 @@ const moodToScore = {
   tashvishli: 1,
 };
 
-const scoreToMoodLabel = {
+const scoreToMoodLabel: Record<number, string> = {
   5: 'Xursand 🌟',
   3: 'Oddiy 🙂',
   2: 'Charchagan 😴',

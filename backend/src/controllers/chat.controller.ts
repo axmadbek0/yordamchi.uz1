@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { SenderType } from '@prisma/client';
+import { SenderType } from '../types/auth.types';
 import { prisma } from '../lib/prisma';
 import { AuthRequest } from '../types/auth.types';
 import { AppError } from '../utils/AppError';

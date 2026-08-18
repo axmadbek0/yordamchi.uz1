@@ -1,5 +1,5 @@
 import jwt, { SignOptions, JwtPayload } from 'jsonwebtoken';
-import { Role } from '@prisma/client';
+import { Role } from '../types/auth.types';
 
 export interface AccessTokenPayload {
   sub: string;

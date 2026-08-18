@@ -1,4 +1,5 @@
-import { Role, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { Role } from '../types/auth.types';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../utils/AppError';
 import { hashPassword } from '../utils/hash';

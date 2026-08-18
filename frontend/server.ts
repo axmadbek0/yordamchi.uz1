@@ -21,7 +21,9 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
  * Muhim: body parser DAN OLDIN ishlashi kerak — aks holda payload yo'qoladi.
  */
 function proxyToBackend(req: IncomingMessage, res: ServerResponse): void {
-  const target = new URL(req.url || '/', BACKEND_URL);
+  const originalUrl = (req as any).originalUrl || req.url || '/';
+  const targetPath = originalUrl.startsWith('/api') ? originalUrl : `/api${originalUrl}`;
+  const target = new URL(targetPath, BACKEND_URL);
 
   const headers = { ...req.headers, host: target.host };
 
