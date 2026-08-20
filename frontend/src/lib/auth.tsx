@@ -30,8 +30,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 function mapBackendRole(role: string): UserRole {
-  if (role === 'PARENT') return 'parent';
-  if (role === 'TEACHER' || role === 'SCHOOL_ADMIN') return 'teacher';
+  if (role === 'PARENT' || role === 'parent') return 'parent';
+  if (role === 'TEACHER' || role === 'teacher') return 'teacher';
+  if (role === 'SCHOOL_ADMIN' || role === 'school_admin') return 'school_admin';
   return 'admin';
 }
 

@@ -18,6 +18,14 @@ import { ParentProfile } from './features/parent/ParentProfile';
 import { ParentNotificationsPage } from './features/parent/ParentNotificationsPage';
 import { ParentLayout } from './components/layout/ParentLayout';
 import { TeacherLayout } from './components/layout/TeacherLayout';
+import { SchoolAdminLayout } from './components/layout/SchoolAdminLayout';
+import { SchoolAdminDashboard } from './features/school-admin/SchoolAdminDashboard';
+import { TeachersManagementPage } from './features/school-admin/TeachersManagementPage';
+import { StudentsOverviewPage } from './features/school-admin/StudentsOverviewPage';
+import { SchoolReportsPage } from './features/school-admin/SchoolReportsPage';
+import { SchoolProfileEditPage } from './features/school-admin/SchoolProfileEditPage';
+import { CameraSettingsPage } from './features/school-admin/CameraSettingsPage';
+import { AnnouncementsPage } from './features/school-admin/AnnouncementsPage';
 import { ChatProvider } from './components/ai-chat/ChatContext';
 import { ChatWidget } from './components/ai-chat/ChatWidget';
 import { NearbySchoolsPage } from './features/schools-directory/NearbySchoolsPage';
@@ -27,8 +35,15 @@ import { EditModeToggle } from './components/admin/EditModeToggle';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AppToastHost } from './components/AppToastHost';
 import { ConnectionBanner } from './components/ConnectionBanner';
+import type { UserRole } from './types';
 
-function ProtectedRoute({ children, allowedRole }: { children: React.ReactNode; allowedRole: 'parent' | 'teacher' }) {
+function ProtectedRoute({
+  children,
+  allowedRole,
+}: {
+  children: React.ReactNode;
+  allowedRole: UserRole;
+}) {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -45,6 +60,9 @@ function ProtectedRoute({ children, allowedRole }: { children: React.ReactNode; 
   }
 
   if (user.role !== allowedRole) {
+    if (user.role === 'school_admin') return <Navigate to="/school-admin/dashboard" replace />;
+    if (user.role === 'teacher') return <Navigate to="/teacher/class" replace />;
+    if (user.role === 'parent') return <Navigate to="/parent/reports" replace />;
     return <Navigate to="/" replace />;
   }
 
@@ -81,6 +99,28 @@ function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
 
+      {/* Maktab Admini Shell Routes */}
+      <Route
+        path="/school-admin"
+        element={
+          <ProtectedRoute allowedRole="school_admin">
+            <ErrorBoundary name="school-admin">
+              <SchoolAdminLayout />
+            </ErrorBoundary>
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<SchoolAdminDashboard />} />
+        <Route path="teachers" element={<TeachersManagementPage />} />
+        <Route path="students" element={<StudentsOverviewPage />} />
+        <Route path="reports" element={<SchoolReportsPage />} />
+        <Route path="profile" element={<SchoolProfileEditPage />} />
+        <Route path="cameras" element={<CameraSettingsPage />} />
+        <Route path="announcements" element={<AnnouncementsPage />} />
+      </Route>
+
+      {/* O'qituvchi Shell Routes */}
       <Route
         path="/teacher"
         element={
@@ -99,6 +139,7 @@ function AppRoutes() {
         <Route path="dashboard" element={<Navigate to="/teacher/class" replace />} />
       </Route>
 
+      {/* Ota-ona Shell Routes */}
       <Route
         path="/parent"
         element={

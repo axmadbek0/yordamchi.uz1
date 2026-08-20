@@ -8,34 +8,42 @@ datasource db {
 }
 
 model School {
-  id         String   @id @default(uuid())
-  number     Int      @unique
-  name       String
-  region     String?
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id           String         @id @default(uuid())
+  number       Int            @unique // e.g. 71, 12
+  name         String
+  address      String?
+  region       String?
+  phone        String?
+  description  String?
+  photos       String?        // JSON string array e.g. '["photo1.jpg"]'
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
 
-  users      User[]
-  students   Student[]
+  users        User[]
+  students     Student[]
+  cameras      Camera[]
+  announcements Announcement[]
 }
 
 model User {
-  id            String    @id @default(uuid())
-  login         String    @unique
-  password_hash String
-  role          String    @default("PARENT")
-  full_name     String?
-  phone         String?
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
+  id                   String         @id @default(uuid())
+  login                String         @unique // e.g. "admin71", "umumi", "12_001"
+  password_hash        String
+  role                 String         @default("PARENT") // SUPER_ADMIN, SCHOOL_ADMIN, TEACHER, PARENT
+  full_name            String?
+  phone                String?
+  class_name           String?        // For teachers: e.g. "4-A sinf"
+  must_change_password Boolean        @default(false)
+  last_login_at        DateTime?
+  created_at           DateTime       @default(now())
+  updated_at           DateTime       @updatedAt
 
-  school_id     String?
-  school        School?   @relation(fields: [school_id], references: [id])
+  school_id            String?
+  school               School?        @relation(fields: [school_id], references: [id])
 
-  students      Student[] @relation("ParentToStudent")
-
-  chats         Chat[]
-  refresh_tokens RefreshToken[]
+  students             Student[]      @relation("ParentToStudent")
+  chats                Chat[]
+  refresh_tokens       RefreshToken[]
 }
 
 model RefreshToken {
@@ -54,7 +62,7 @@ model Student {
   id            String    @id @default(uuid())
   first_name    String
   last_name     String
-  class_name    String
+  class_name    String    // e.g. "4-A sinf"
   diagnosis     String?
   dob           DateTime?
   created_at    DateTime  @default(now())
@@ -81,12 +89,36 @@ model DailyLog {
   student       Student   @relation(fields: [student_id], references: [id])
 }
 
+model Camera {
+  id           String    @id @default(uuid())
+  school_id    String
+  school       School    @relation(fields: [school_id], references: [id])
+  type         String    // DORMITORY, KITCHEN
+  sector_label String    // e.g. "1-yotoqxona (O'g'il bolalar)", "Oshxona zali"
+  stream_url   String?
+  is_active    Boolean   @default(true)
+  created_at   DateTime  @default(now())
+}
+
+model Announcement {
+  id              String    @id @default(uuid())
+  school_id       String
+  school          School    @relation(fields: [school_id], references: [id])
+  sender_id       String
+  title           String
+  body            String
+  type            String    @default("announcement") // pickup_request, announcement, urgent
+  target_classes  String?   // JSON array e.g. '["4-A sinf"]' or null for all
+  delivered_count Int       @default(0)
+  created_at      DateTime  @default(now())
+}
+
 model Chat {
-  id         String   @id @default(uuid())
-  created_at DateTime @default(now())
+  id         String    @id @default(uuid())
+  created_at DateTime  @default(now())
 
   user_id    String
-  user       User     @relation(fields: [user_id], references: [id])
+  user       User      @relation(fields: [user_id], references: [id])
 
   messages   Message[]
 }

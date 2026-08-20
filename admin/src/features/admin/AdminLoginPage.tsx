@@ -22,17 +22,11 @@ export function AdminLoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const fillCredentials = () => {
-    setEmail('admin@yordamchi.med');
-    setPassword('superadmin123');
-    setError('');
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!email) {
+    if (!email.trim()) {
       setError('Email maydoni majburiy.');
       return;
     }
@@ -43,7 +37,7 @@ export function AdminLoginPage() {
 
     setIsLoading(true);
     try {
-      const success = await login('super_admin', 0, email, password);
+      const success = await login('super_admin', 0, email.trim(), password);
       if (success) {
         navigate('/admin/dashboard');
       } else {
@@ -108,7 +102,7 @@ export function AdminLoginPage() {
               <Input
                 label="Email"
                 type="email"
-                placeholder="admin@yordamchi.med"
+                placeholder="Emailingizni kiriting"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -130,20 +124,6 @@ export function AdminLoginPage() {
                   className="absolute right-4 top-[44px] text-primary/70 hover:text-primary cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-
-              {/* Quick fill for testing */}
-              <div className="bg-bg/50 rounded-xl p-3 border border-primary/10 mt-2">
-                <p className="text-[11px] font-bold text-deep uppercase tracking-wider mb-2">
-                  Tezkor kirish (Sinov uchun):
-                </p>
-                <button
-                  type="button"
-                  onClick={fillCredentials}
-                  className="w-full text-[11px] font-semibold bg-white border border-primary/10 hover:bg-primary/5 py-1.5 px-3 rounded-lg text-deep transition-all cursor-pointer"
-                >
-                  Super-admin loginini to'ldirish
                 </button>
               </div>
 

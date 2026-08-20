@@ -20,7 +20,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _schoolController = TextEditingController(text: '12');
+  final _schoolController = TextEditingController();
   final _loginController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -31,20 +31,11 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _setQuickFill(UserRole.parent);
   }
 
-  void _setQuickFill(UserRole role) {
+  void _onRoleChanged(UserRole role) {
     setState(() {
       _selectedRole = role;
-      _schoolController.text = '12';
-      if (role == UserRole.parent) {
-        _loginController.text = '12_001';
-        _passwordController.text = 'parent123';
-      } else {
-        _loginController.text = 'teacher_12';
-        _passwordController.text = 'teacher123';
-      }
       _errorMessage = null;
     });
   }
@@ -181,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               icon: Icons.family_restroom_rounded,
                               isSelected: _selectedRole == UserRole.parent,
                               onTap: () {
-                                _setQuickFill(UserRole.parent);
+                                _onRoleChanged(UserRole.parent);
                                 HapticHelper.selectionClick();
                               },
                             ),
@@ -192,7 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               icon: Icons.school_rounded,
                               isSelected: _selectedRole == UserRole.teacher,
                               onTap: () {
-                                _setQuickFill(UserRole.teacher);
+                                _onRoleChanged(UserRole.teacher);
                                 HapticHelper.selectionClick();
                               },
                             ),
@@ -281,110 +272,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       isLoading: isLoading,
                       icon: Icons.login_rounded,
                       onPressed: _submitLogin,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Quick Fill Demo Section
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Divider(
-                            color: isDark
-                                ? AppColors.borderDark
-                                : AppColors.borderLight,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(
-                            "Tezkor Demo Sinov",
-                            style: AppTypography.bodySmall.copyWith(
-                              color: AppColors.textMutedLight,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Divider(
-                            color: isDark
-                                ? AppColors.borderDark
-                                : AppColors.borderLight,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Responsive Demo Buttons
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        if (constraints.maxWidth < 280) {
-                          return Column(
-                            children: [
-                              AppButton(
-                                text: AppStrings.quickFillParent,
-                                icon: Icons.face_rounded,
-                                variant: ButtonVariant.secondary,
-                                height: 40,
-                                padding: const EdgeInsets.symmetric(horizontal: 10),
-                                fontSize: 12.5,
-                                onPressed: () {
-                                  _setQuickFill(UserRole.parent);
-                                  HapticHelper.lightImpact();
-                                },
-                              ),
-                              const SizedBox(height: 8),
-                              AppButton(
-                                text: AppStrings.quickFillTeacher,
-                                icon: Icons.badge_outlined,
-                                variant: ButtonVariant.secondary,
-                                height: 40,
-                                padding: const EdgeInsets.symmetric(horizontal: 10),
-                                fontSize: 12.5,
-                                onPressed: () {
-                                  _setQuickFill(UserRole.teacher);
-                                  HapticHelper.lightImpact();
-                                },
-                              ),
-                            ],
-                          );
-                        }
-
-                        return Row(
-                          children: [
-                            Expanded(
-                              child: AppButton(
-                                text: AppStrings.quickFillParent,
-                                icon: Icons.face_rounded,
-                                variant: ButtonVariant.secondary,
-                                height: 40,
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
-                                fontSize: 12.5,
-                                onPressed: () {
-                                  _setQuickFill(UserRole.parent);
-                                  HapticHelper.lightImpact();
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: AppButton(
-                                text: AppStrings.quickFillTeacher,
-                                icon: Icons.badge_outlined,
-                                variant: ButtonVariant.secondary,
-                                height: 40,
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
-                                fontSize: 12.5,
-                                onPressed: () {
-                                  _setQuickFill(UserRole.teacher);
-                                  HapticHelper.lightImpact();
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      },
                     ),
                   ],
                 ),

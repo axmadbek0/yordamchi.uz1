@@ -36,14 +36,20 @@ function toPublicUser(user: {
   role: Role | string;
   school_id: string | null;
   phone: string | null;
+  must_change_password?: boolean;
+  school?: { number: number; name: string } | null;
 }) {
   return {
     id: user.id,
     login: user.login,
     full_name: user.full_name,
+    displayName: user.full_name || user.login,
     role: user.role as Role,
     school_id: user.school_id,
+    schoolId: user.school_id,
+    schoolNumber: user.school?.number ?? undefined,
     phone: user.phone,
+    mustChangePassword: user.must_change_password ?? false,
   };
 }
 
@@ -51,13 +57,24 @@ async function issueTokens(user: {
   id: string;
   role: Role | string;
   school_id: string | null;
+  school?: { number: number } | null;
 }) {
   const jti = crypto.randomUUID();
 
+  let schoolNumber: number | null = user.school?.number ?? null;
+  if (!schoolNumber && user.school_id) {
+    const s = await prisma.school.findUnique({ where: { id: user.school_id } });
+    if (s) schoolNumber = s.number;
+  }
+
   const accessToken = signAccessToken({
     sub: user.id,
+    userId: user.id,
     role: user.role as Role,
     school_id: user.school_id,
+    schoolId: user.school_id ?? undefined,
+    school_number: schoolNumber,
+    schoolNumber: schoolNumber ?? undefined,
   });
 
   const refreshToken = signRefreshToken({
@@ -78,8 +95,7 @@ async function issueTokens(user: {
 
 /**
  * POST /api/auth/login
- * Body: { login, password }
- * refreshToken — faqat httpOnly cookie orqali
+ * Body: { login, password, role?, schoolNumber? }
  */
 export async function login(
   req: Request,
@@ -87,29 +103,47 @@ export async function login(
   next: NextFunction
 ): Promise<void> {
   try {
-    console.log('Kelyotgan ma\'lumot:', req.body);
-
-    const { login: loginInput, password } = req.body as {
+    const {
+      login: loginInput,
+      password,
+      role: roleInput,
+      schoolNumber: schoolNumInput,
+    } = req.body as {
       login?: unknown;
       password?: unknown;
       role?: unknown;
       schoolNumber?: unknown;
     };
 
-    // role / schoolNumber ixtiyoriy — e'tiborsiz qoldiriladi
     if (typeof loginInput !== 'string' || typeof password !== 'string') {
       throw AppError.badRequest('Login va parol kiritilishi shart');
     }
 
-    if (loginInput.trim().length < 3 || password.length < 6) {
-      throw AppError.badRequest('Login yoki parol noto\'g\'ri formatda');
+    if (loginInput.trim().length < 3 || password.length < 5) {
+      throw AppError.unauthorized(INVALID_CREDENTIALS);
     }
 
     const normalizedLogin = loginInput.trim().toLowerCase();
 
-    const user = await prisma.user.findUnique({
+    // Check if role is school_admin or SCHOOL_ADMIN
+    const isSchoolAdminReq =
+      typeof roleInput === 'string' &&
+      (roleInput.toLowerCase() === 'school_admin' || roleInput.toUpperCase() === 'SCHOOL_ADMIN');
+
+    let user = await prisma.user.findUnique({
       where: { login: normalizedLogin },
+      include: { school: true },
     });
+
+    // If school number is supplied, ensure user's school matches
+    if (user && schoolNumInput) {
+      const parsedNum = Number(schoolNumInput);
+      if (!isNaN(parsedNum) && user.school && user.school.number !== parsedNum) {
+        // Mismatch between school and user
+        await comparePassword(password, DUMMY_HASH);
+        throw AppError.unauthorized(INVALID_CREDENTIALS);
+      }
+    }
 
     const passwordOk = await comparePassword(
       password,
@@ -120,14 +154,22 @@ export async function login(
       throw AppError.unauthorized(INVALID_CREDENTIALS);
     }
 
+    // Update last login
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { last_login_at: new Date() },
+    });
+
     const tokens = await issueTokens(user);
     setRefreshTokenCookie(res, tokens.refreshToken);
 
     res.status(200).json({
+      success: true,
       message: 'Tizimga muvaffaqiyatli kirdingiz',
       accessToken: tokens.accessToken,
       token: tokens.accessToken,
       user: toPublicUser(user),
+      mustChangePassword: user.must_change_password,
     });
   } catch (error) {
     next(error);
@@ -136,7 +178,6 @@ export async function login(
 
 /**
  * POST /api/auth/refresh
- * Cookie'dagi refreshToken orqali yangi accessToken beradi
  */
 export async function refreshToken(
   req: Request,
@@ -155,7 +196,7 @@ export async function refreshToken(
 
     const storedToken = await prisma.refreshToken.findUnique({
       where: { token_hash: tokenHash },
-      include: { user: true },
+      include: { user: { include: { school: true } } },
     });
 
     if (
@@ -178,6 +219,7 @@ export async function refreshToken(
     setRefreshTokenCookie(res, tokens.refreshToken);
 
     res.status(200).json({
+      success: true,
       accessToken: tokens.accessToken,
       token: tokens.accessToken,
     });
@@ -192,7 +234,7 @@ export async function refreshToken(
 }
 
 /**
- * POST /api/auth/logout — cookie + DB dagi refresh tokenni bekor qilish
+ * POST /api/auth/logout
  */
 export async function logout(
   req: Request,
@@ -213,7 +255,7 @@ export async function logout(
     }
 
     clearRefreshTokenCookie(res);
-    res.json({ message: 'Tizimdan chiqdingiz' });
+    res.json({ success: true, message: 'Tizimdan chiqdingiz' });
   } catch (error) {
     next(error);
   }

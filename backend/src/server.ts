@@ -19,6 +19,15 @@ import studentRoutes from './routes/student.routes';
 import dailyLogRoutes from './routes/dailyLog.routes';
 import chatRoutes from './routes/chat.routes';
 import aiRoutes from './routes/ai.routes';
+import schoolAdminRoutes from './routes/schoolAdmin.routes';
+
+// Muhim muhit o'zgaruvchilarini tekshirish
+const requiredEnvVars = ['DATABASE_URL'];
+for (const key of requiredEnvVars) {
+  if (!process.env[key]) {
+    throw new Error(`[FATAL] Muhim environment o'zgaruvchi topilmadi: ${key}`);
+  }
+}
 
 // JWT kalitlari yo'q bo'lsa — darhol to'xtatish
 assertJwtSecrets();
@@ -93,6 +102,10 @@ app.use('/api/v1/chats', chatRoutes);
 app.use('/ai', aiRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/v1/ai', aiRoutes);
+
+app.use('/school-admin', schoolAdminRoutes);
+app.use('/api/school-admin', schoolAdminRoutes);
+app.use('/api/v1/school-admin', schoolAdminRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

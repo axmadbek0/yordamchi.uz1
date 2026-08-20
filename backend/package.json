@@ -7,6 +7,7 @@
     "start": "node dist/server.js",
     "dev": "nodemon",
     "build": "tsc",
+    "test": "ts-node src/tests/auth.test.ts",
     "db:seed": "prisma db seed"
   },
   "prisma": {

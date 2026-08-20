@@ -3,10 +3,11 @@ import { login, refreshToken, logout } from '../controllers/auth.controller';
 import { register, me } from '../controllers/authController';
 import { authenticate } from '../middlewares/auth.middleware';
 import { authorizeRoles } from '../middlewares/role.middleware';
+import { authRateLimiter } from '../middlewares/rateLimiter';
 
 const router = Router();
 
-router.post('/login', login);
+router.post('/login', authRateLimiter, login);
 router.post('/refresh', refreshToken);
 router.post('/logout', logout);
 router.get('/me', authenticate, me);

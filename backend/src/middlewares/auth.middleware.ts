@@ -26,7 +26,10 @@ export function authenticate(req: AuthRequest, _res: Response, next: NextFunctio
       id: payload.sub,
       role: payload.role,
       school_id: payload.school_id,
+      school_number: payload.school_number,
     };
+    req.schoolId = payload.school_id ?? undefined;
+    req.schoolNumber = payload.school_number ?? undefined;
 
     next();
   } catch (error) {

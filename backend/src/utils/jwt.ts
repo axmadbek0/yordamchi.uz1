@@ -3,8 +3,12 @@ import { Role } from '../types/auth.types';
 
 export interface AccessTokenPayload {
   sub: string;
+  userId?: string;
   role: Role;
   school_id: string | null;
+  schoolId?: string;
+  school_number?: number | null;
+  schoolNumber?: number;
 }
 
 export interface RefreshTokenPayload {
@@ -15,7 +19,6 @@ export interface RefreshTokenPayload {
 function readEnv(name: string): string | undefined {
   const value = process.env[name];
   if (!value) return undefined;
-  // .env dagi qo'shtirnoqlarni tozalash
   return value.trim().replace(/^["']|["']$/g, '');
 }
 
@@ -63,7 +66,7 @@ function getRefreshSecret(): string {
 
 export function signAccessToken(payload: AccessTokenPayload): string {
   const options: SignOptions = {
-    expiresIn: (process.env.JWT_ACCESS_EXPIRES_IN || '15m') as SignOptions['expiresIn'],
+    expiresIn: (process.env.JWT_ACCESS_EXPIRES_IN || '8h') as SignOptions['expiresIn'],
   };
   return jwt.sign(payload, getAccessSecret(), options);
 }
@@ -78,9 +81,13 @@ export function signRefreshToken(payload: RefreshTokenPayload): string {
 export function verifyAccessToken(token: string): AccessTokenPayload {
   const decoded = jwt.verify(token, getAccessSecret()) as JwtPayload & AccessTokenPayload;
   return {
-    sub: decoded.sub,
+    sub: decoded.sub || decoded.userId || '',
+    userId: decoded.userId || decoded.sub,
     role: decoded.role,
-    school_id: decoded.school_id ?? null,
+    school_id: decoded.school_id ?? decoded.schoolId ?? null,
+    schoolId: decoded.schoolId ?? decoded.school_id ?? undefined,
+    school_number: decoded.school_number ?? decoded.schoolNumber ?? null,
+    schoolNumber: decoded.schoolNumber ?? decoded.school_number ?? undefined,
   };
 }
 

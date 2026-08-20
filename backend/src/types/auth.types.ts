@@ -21,8 +21,11 @@ export interface AuthUser {
   id: string;
   role: Role;
   school_id: string | null;
+  school_number?: number | null;
 }
 
 export interface AuthRequest extends Request {
   user?: AuthUser;
+  schoolId?: string;
+  schoolNumber?: number;
 }

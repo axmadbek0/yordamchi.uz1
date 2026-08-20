@@ -10,14 +10,16 @@ import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Heart, Eye, EyeOff, ShieldAlert, ArrowLeft } from 'lucide-react';
+import type { UserRole } from '../../types';
 
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const [role, setRole] = useState<'parent' | 'teacher'>('parent');
+  const [role, setRole] = useState<UserRole>('parent');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [schoolNumber, setSchoolNumber] = useState('');
   
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,7 +29,7 @@ export function LoginPage() {
     e.preventDefault();
     setError('');
 
-    if (!username) {
+    if (!username.trim()) {
       setError('Login maydoni majburiy.');
       return;
     }
@@ -38,17 +40,19 @@ export function LoginPage() {
 
     setIsLoading(true);
     try {
-      const result = await login(role, username, password);
+      const parsedSchool = schoolNumber.trim() ? parseInt(schoolNumber, 10) : undefined;
+      const result = await login(role, username.trim(), password, parsedSchool);
       if (result.ok) {
-        // Backend dagi haqiqiy rol bo'yicha yo'naltirish (UI dagi role faqat UX)
         const stored = localStorage.getItem('yordamchi_auth_user');
         const parsed = stored ? (JSON.parse(stored) as { role?: string }) : null;
         const actualRole = parsed?.role || role;
 
-        if (actualRole === 'parent') {
-          navigate('/parent/reports');
-        } else {
+        if (actualRole === 'school_admin') {
+          navigate('/school-admin/dashboard');
+        } else if (actualRole === 'teacher') {
           navigate('/teacher/class');
+        } else {
+          navigate('/parent/reports');
         }
       } else {
         setError(result.error || 'Login yoki parol xato! Iltimos, tekshirib qayta kiriting.');
@@ -58,6 +62,11 @@ export function LoginPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRoleSelect = (newRole: UserRole) => {
+    setRole(newRole);
+    setError('');
   };
 
   return (
@@ -71,7 +80,7 @@ export function LoginPage() {
       </div>
 
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-lg">
           {/* Logo brand */}
           <div className="flex flex-col items-center gap-2 mb-6 text-center">
             <div className="bg-primary text-white rounded-full p-3 shadow-lg shadow-primary/25">
@@ -85,32 +94,35 @@ export function LoginPage() {
             </p>
           </div>
 
-          <Card variant="white" className="p-8 shadow-xl border border-primary/5">
+          <Card variant="white" className="p-6 sm:p-8 shadow-xl border border-primary/5">
             {/* Role segmented toggle */}
-            <div className="flex bg-bg rounded-full p-1 mb-6">
+            <div className="grid grid-cols-3 bg-bg rounded-2xl p-1 mb-6 gap-1">
               <button
                 type="button"
-                onClick={() => {
-                  setRole('parent');
-                  setError('');
-                }}
-                className={`flex-1 py-3 text-base font-bold rounded-full transition-all cursor-pointer ${
+                onClick={() => handleRoleSelect('parent')}
+                className={`py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer truncate ${
                   role === 'parent' ? 'bg-primary text-white shadow-sm' : 'text-muted hover:text-deep'
                 }`}
               >
-                Ota-ona roli
+                Ota-ona
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setRole('teacher');
-                  setError('');
-                }}
-                className={`flex-1 py-3 text-base font-bold rounded-full transition-all cursor-pointer ${
+                onClick={() => handleRoleSelect('teacher')}
+                className={`py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer truncate ${
                   role === 'teacher' ? 'bg-primary text-white shadow-sm' : 'text-muted hover:text-deep'
                 }`}
               >
-                O‘qituvchi roli
+                O‘qituvchi
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRoleSelect('school_admin')}
+                className={`py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer truncate ${
+                  role === 'school_admin' ? 'bg-primary text-white shadow-sm' : 'text-muted hover:text-deep'
+                }`}
+              >
+                Maktab admini
               </button>
             </div>
 
@@ -123,11 +135,20 @@ export function LoginPage() {
                 </div>
               )}
 
+              {/* School Number */}
+              <Input
+                label="Maktab raqami (ixtiyoriy)"
+                type="number"
+                placeholder="Masalan: 71 yoki 12"
+                value={schoolNumber}
+                onChange={(e) => setSchoolNumber(e.target.value)}
+              />
+
               {/* Login */}
               <Input
                 label="Login"
                 type="text"
-                placeholder={role === 'parent' ? 'Masalan: 12_001' : 'Masalan: umumi'}
+                placeholder="Loginingizni kiriting"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -152,7 +173,7 @@ export function LoginPage() {
                 </button>
               </div>
             
-              <Button variant="primary" size="lg" fullWidth type="submit" disabled={isLoading} className="mt-4">
+              <Button variant="primary" size="lg" fullWidth type="submit" disabled={isLoading} className="mt-2">
                 {isLoading ? 'Yuklanmoqda...' : 'Kirish'}
               </Button>
             </form>
