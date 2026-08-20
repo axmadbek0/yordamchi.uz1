@@ -125,15 +125,26 @@ export async function login(
 
     const normalizedLogin = loginInput.trim().toLowerCase();
 
-    // Check if role is school_admin or SCHOOL_ADMIN
-    const isSchoolAdminReq =
-      typeof roleInput === 'string' &&
-      (roleInput.toLowerCase() === 'school_admin' || roleInput.toUpperCase() === 'SCHOOL_ADMIN');
+    // Parse expected role if provided
+    let expectedRole: Role | null = null;
+    if (typeof roleInput === 'string' && roleInput.trim()) {
+      const lower = roleInput.trim().toLowerCase();
+      if (lower === 'parent') expectedRole = Role.PARENT;
+      else if (lower === 'teacher') expectedRole = Role.TEACHER;
+      else if (lower === 'school_admin' || lower === 'schooladmin') expectedRole = Role.SCHOOL_ADMIN;
+      else if (lower === 'super_admin' || lower === 'admin') expectedRole = Role.SUPER_ADMIN;
+    }
 
     let user = await prisma.user.findUnique({
       where: { login: normalizedLogin },
       include: { school: true },
     });
+
+    // If role is supplied, ensure user's role strictly matches the requested role
+    if (user && expectedRole && user.role !== expectedRole) {
+      await comparePassword(password, DUMMY_HASH);
+      throw AppError.unauthorized(INVALID_CREDENTIALS);
+    }
 
     // If school number is supplied, ensure user's school matches
     if (user && schoolNumInput) {

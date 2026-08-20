@@ -55,7 +55,7 @@ function proxyToBackend(req: IncomingMessage, res: ServerResponse): void {
 
 async function startServer() {
   // API proxy — Vite va body parser dan oldin
-  app.use('/api', (req, res) => {
+  app.use(['/api', '/auth'], (req, res) => {
     proxyToBackend(req, res);
   });
 

@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (
-    _role: UserRole,
+    role: UserRole,
     loginStr: string,
     passwordStr: string,
     schoolNumber?: number
@@ -127,9 +127,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await loginRequest({
         login: loginStr,
         password: passwordStr,
+        role,
+        schoolNumber,
       });
 
       const authUser = await buildAuthUser(data.user, schoolNumber);
+
+      if (authUser.role !== role) {
+        clearAuthSession();
+        setIsLoading(false);
+        return {
+          ok: false,
+          error: "Tanlangan rolga mos hisob ma'lumotlari kiritilmadi.",
+        };
+      }
+
       setUser(authUser);
       localStorage.setItem('yordamchi_auth_user', JSON.stringify(authUser));
       setIsLoading(false);

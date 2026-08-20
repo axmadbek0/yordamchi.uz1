@@ -31,6 +31,8 @@ export async function loginRequest(params: LoginParams): Promise<LoginResponse> 
   const { data } = await axiosInstance.post<LoginResponse>('/auth/login', {
     login: params.login.trim(),
     password: params.password,
+    role: params.role,
+    schoolNumber: params.schoolNumber,
   });
 
   persistAuthSession(data);
