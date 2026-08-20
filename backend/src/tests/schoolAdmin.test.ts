@@ -2,10 +2,12 @@
  * Automated test suite for School Admin endpoints and security rules
  */
 
-import { describe, it } from 'node:test';
+import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { httpServer } from '../server';
 
-const BASE_URL = 'http://localhost:5000/api';
+const PORT = 5000;
+const BASE_URL = `http://localhost:${PORT}/api`;
 
 async function postJson(endpoint: string, data: any, token?: string) {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -47,6 +49,15 @@ describe('School Admin — Full End-to-End Suite', async () => {
   let adminToken12 = '';
   let createdTeacherId = '';
 
+  before(async () => {
+    // Ensure server is listening
+    if (!httpServer.listening) {
+      await new Promise<void>((resolve) => {
+        httpServer.listen(PORT, () => resolve());
+      });
+    }
+  });
+
   it('1. Login: 71-Maktab admini tizimga muvaffaqiyatli kiradi va token oladi', async () => {
     const res = await postJson('/auth/login', {
       login: 'admin71',
@@ -82,7 +93,7 @@ describe('School Admin — Full End-to-End Suite', async () => {
       login: 'admin71',
       password: '123456',
       role: 'school_admin',
-      schoolNumber: 999, // mavjud bo'lmagan maktab
+      schoolNumber: 999,
     });
 
     assert.equal(res.status, 401);

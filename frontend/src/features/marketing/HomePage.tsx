@@ -507,14 +507,20 @@ export function HomePage() {
       {/* Footer */}
       <footer className="bg-deep text-white/80 py-12 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-sm">
-          <div className="flex items-center gap-2">
-            <div className="bg-primary text-white rounded-full p-1.5">
+          <a
+            href="https://yordamchiadmin.netlify.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Boshqaruv Tizimi"
+            className="flex items-center gap-2 group cursor-pointer"
+          >
+            <div className="bg-primary text-white rounded-full p-1.5 group-hover:scale-105 transition-transform">
               <Heart className="w-5 h-5" fill="currentColor" />
             </div>
-            <span className="text-lg font-black text-white tracking-tight font-serif">
+            <span className="text-lg font-black text-white tracking-tight font-serif group-hover:text-primary transition-colors">
               YORDAMCHI <span className="text-red-500 text-sm lowercase">med</span>
             </span>
-          </div>
+          </a>
           <p>© 2026 Yordamchi med — barcha huquqlar himoyalangan. Maxsus ehtiyojli bolalar va oilalar yordamchisi.</p>
           <div className="flex items-center gap-6">
             <a href="#about" className="hover:text-white transition-all">Biz haqimizda</a>

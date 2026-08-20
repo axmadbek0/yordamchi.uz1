@@ -110,7 +110,17 @@ export function SignupPage() {
 
       {/* Footer */}
       <footer className="p-4 text-center text-xs text-muted">
-        © 2026 Yordamchi med. Maxsus ehtiyojli bolalar va ularning ota-onalari uchun yordamchi platforma.
+        © 2026{' '}
+        <a
+          href="https://yordamchiadmin.netlify.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-deep transition-colors underline-offset-2 hover:underline"
+          title="Boshqaruv Tizimi"
+        >
+          Yordamchi med
+        </a>
+        . Maxsus ehtiyojli bolalar va ularning ota-onalari uchun yordamchi platforma.
       </footer>
     </div>
   );

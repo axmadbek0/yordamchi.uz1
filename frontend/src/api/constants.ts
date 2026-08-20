@@ -6,7 +6,8 @@ export const STORAGE_KEYS = {
 
 /**
  * Markazlashgan API base.
- * Chaqiriqlar: axiosInstance.post('/auth/login') → http://localhost:5000/api/auth/login
+ * Relative '/api' ishlatiladi — bu har qanday qurilma (localhost, telefon, IP yoki domen)dan
+ * to'g'ri ishlashini kafolatlaydi.
  */
 export const API_BASE_URL =
-  import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  import.meta.env.VITE_API_URL || '/api';
