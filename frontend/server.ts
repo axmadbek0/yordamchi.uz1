@@ -9,6 +9,8 @@ import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
 import http from 'http';
 import type { IncomingMessage, ServerResponse } from 'http';
+import { spawn } from 'child_process';
+import net from 'net';
 
 dotenv.config();
 
@@ -16,8 +18,52 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
 
+function isPortOpen(port: number, host = '127.0.0.1'): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    socket.setTimeout(600);
+    socket.on('connect', () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.on('timeout', () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.on('error', () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.connect(port, host);
+  });
+}
+
+let backendProcess: any = null;
+
+async function ensureBackendRunning() {
+  const backendPort = 5000;
+  const running = await isPortOpen(backendPort);
+  if (!running && !backendProcess) {
+    console.log('[auto-start] Backend server (5000-port) ishlamayapti, avtomatik yoqilmoqda...');
+    const backendDir = path.resolve(process.cwd(), '../backend');
+    backendProcess = spawn('npx', ['ts-node', 'src/server.ts'], {
+      cwd: backendDir,
+      stdio: 'inherit',
+      shell: true,
+    });
+    backendProcess.on('error', (err: any) => console.error('[auto-start] Backend xatosi:', err));
+    backendProcess.on('exit', () => {
+      backendProcess = null;
+    });
+    // Wait briefly for backend to bind port
+    await new Promise((r) => setTimeout(r, 1200));
+  } else {
+    console.log('[auto-start] Backend server (5000-port) faol ishlamoqda.');
+  }
+}
+
 /**
- * /api so'rovlarini backendga uzatadi.
+ * /api va /auth so'rovlarini backendga uzatadi.
  * Muhim: body parser DAN OLDIN ishlashi kerak — aks holda payload yo'qoladi.
  */
 function proxyToBackend(req: IncomingMessage, res: ServerResponse): void {
@@ -47,13 +93,15 @@ function proxyToBackend(req: IncomingMessage, res: ServerResponse): void {
     if (!res.headersSent) {
       res.writeHead(502, { 'Content-Type': 'application/json' });
     }
-    res.end(JSON.stringify({ message: 'Backend serverga ulanib bo\'lmadi' }));
+    res.end(JSON.stringify({ message: "Backend serverga ulanib bo'lmadi" }));
   });
 
   req.pipe(proxyReq);
 }
 
 async function startServer() {
+  await ensureBackendRunning();
+
   // API proxy — Vite va body parser dan oldin
   app.use(['/api', '/auth'], (req, res) => {
     proxyToBackend(req, res);
