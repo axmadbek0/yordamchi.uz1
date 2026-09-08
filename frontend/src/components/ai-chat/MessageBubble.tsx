@@ -1,10 +1,10 @@
 /**
- * MessageBubble — User/AI variant message card with action link buttons & avatar pulse
+ * MessageBubble — User/Admin/Assistant variant message card with action link buttons & avatar pulse
  */
 
 import React from 'react';
 import { motion } from 'motion/react';
-import { Heart, RefreshCw, Phone, ExternalLink } from 'lucide-react';
+import { Heart, RefreshCw, Phone, ExternalLink, ShieldCheck } from 'lucide-react';
 import type { ChatMessageItem } from './ChatContext';
 
 interface MessageBubbleProps {
@@ -19,6 +19,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   onNavigate,
 }) => {
   const isAI = message.sender === 'ai';
+  const isAdmin = message.isAdminReply;
 
   return (
     <motion.div
@@ -27,33 +28,49 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       transition={{ duration: 0.2, ease: 'easeOut' }}
       className={`flex items-start gap-2.5 my-2.5 ${isAI ? 'justify-start' : 'justify-end'}`}
     >
-      {/* AI Avatar */}
+      {/* Admin / Assistant Avatar */}
       {isAI && (
         <div className="relative shrink-0 mt-0.5">
           <motion.div
             animate={{ scale: [1, 1.08, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            className="w-8 h-8 rounded-full bg-deep text-white flex items-center justify-center shadow-xs"
+            className={`w-8 h-8 rounded-full flex items-center justify-center shadow-xs ${
+              isAdmin ? 'bg-[#123C5C] text-white' : 'bg-deep text-white'
+            }`}
           >
-            <Heart className="w-4 h-4 fill-coral text-coral" />
+            {isAdmin ? (
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            ) : (
+              <Heart className="w-4 h-4 fill-coral text-coral" />
+            )}
           </motion.div>
         </div>
       )}
 
       {/* Bubble Content */}
-      <div className={`max-w-[82%] sm:max-w-[75%] flex flex-col ${isAI ? 'items-start' : 'items-end'}`}>
+      <div className={`max-w-[85%] sm:max-w-[78%] flex flex-col ${isAI ? 'items-start' : 'items-end'}`}>
+        {/* Admin Badge if reply from Super Admin */}
+        {isAdmin && (
+          <div className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase px-2 py-0.5 mb-1 rounded bg-[#123C5C] text-white tracking-wider">
+            <ShieldCheck className="w-3 h-3 text-emerald-400" />
+            Administrator Javobi
+          </div>
+        )}
+
         <div
           className={`px-4 py-3 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-xs ${
             isAI
               ? message.isError
                 ? 'bg-rose-50 text-rose-800 border border-rose-200 rounded-tl-none'
+                : isAdmin
+                ? 'bg-[#F0F7FD] text-deep border-2 border-primary/20 rounded-tl-none font-medium'
                 : 'bg-white text-deep border border-primary/10 rounded-tl-none'
               : 'bg-coral text-white font-medium rounded-tr-none'
           }`}
         >
           <p className="whitespace-pre-wrap">{message.text}</p>
 
-          {/* Action Link button inside AI response */}
+          {/* Action Link button */}
           {message.actionLink && (
             <div className="mt-2.5 pt-2 border-t border-primary/8">
               {message.actionLink.url.startsWith('tel:') ? (

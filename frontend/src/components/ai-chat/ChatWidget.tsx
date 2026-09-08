@@ -1,5 +1,5 @@
 /**
- * ChatWidget — Global Floating Action Button (FAB) + AI Assistant Bottom Sheet / Side Panel
+ * ChatWidget — Global Floating Action Button (FAB) + Support Inquiries Bottom Sheet / Side Panel
  */
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -13,10 +13,9 @@ import {
   X,
   Send,
   Trash2,
-  Heart,
-  Sparkles,
   ChevronDown,
   ShieldCheck,
+  Headphones,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
@@ -67,15 +66,17 @@ export const ChatWidget: React.FC = () => {
     <>
       {/* Floating Action Button (FAB) */}
       <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
-        {/* Subtle tooltip callout when closed */}
+        {/* Tooltip callout when closed: Savollaringiz bormi? */}
         {!isOpen && (
           <motion.div
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white text-deep text-xs font-bold shadow-lg border border-primary/10"
+            whileHover={{ scale: 1.05 }}
+            onClick={toggleOpen}
+            className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white text-deep text-xs font-bold shadow-xl border border-primary/10 cursor-pointer hover:border-coral transition-all"
           >
-            <Sparkles className="w-3.5 h-3.5 text-coral" />
-            AI Maslahatchi
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-deep font-extrabold">Savollaringiz bormi?</span>
           </motion.div>
         )}
 
@@ -85,7 +86,7 @@ export const ChatWidget: React.FC = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           className="w-14 h-14 rounded-full bg-coral text-white shadow-xl shadow-coral/30 flex items-center justify-center cursor-pointer relative overflow-hidden group"
-          title="AI Maslahatchini ochish"
+          title="Savollaringiz bo'lsa bizga yozing"
         >
           <AnimatePresence mode="wait">
             {isOpen ? (
@@ -130,16 +131,16 @@ export const ChatWidget: React.FC = () => {
               {/* Header */}
               <div className="px-5 py-4 bg-deep text-white flex items-center justify-between shadow-xs">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
-                    <Heart className="w-5 h-5 fill-coral text-coral" />
+                  <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20">
+                    <Headphones className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <h3 className="font-bold text-sm font-serif">AI Maslahatchi</h3>
+                      <h3 className="font-bold text-sm font-serif">Onlayn Qo'llab-quvvatlash</h3>
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                     </div>
-                    <p className="text-[11px] text-white/70 flex items-center gap-1">
-                      <ShieldCheck className="w-3 h-3 text-emerald-400" /> Professional Yordamchi
+                    <p className="text-[11px] text-[#D3E6F5]/80 flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Administratorga to'g'ridan-to'g'ri murojaat
                     </p>
                   </div>
                 </div>
@@ -148,7 +149,7 @@ export const ChatWidget: React.FC = () => {
                   <button
                     type="button"
                     onClick={clearHistory}
-                    className="p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                    className="p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                     title="Tarixni tozalash"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -156,7 +157,7 @@ export const ChatWidget: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setIsOpen(false)}
-                    className="p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                    className="p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                   >
                     <ChevronDown className="w-5 h-5 sm:hidden" />
                     <X className="w-5 h-5 hidden sm:block" />

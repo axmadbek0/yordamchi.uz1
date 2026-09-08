@@ -1,15 +1,17 @@
 /**
- * AI Chat Context — Global State & Handler for Yordamchi med AI Assistant
+ * Support & Inquiries Chat Context — Connects Users Directly with Admin Panel
  */
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { sendChatMessage } from '../../api/aiApi';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { axiosInstance } from '../../api/axios';
 
 export interface ChatMessageItem {
   id: string;
   sender: 'user' | 'ai';
   text: string;
   timestamp: string;
+  senderLabel?: string;
+  isAdminReply?: boolean;
   actionLink?: {
     label: string;
     url: string;
@@ -22,7 +24,7 @@ interface ChatContextType {
   setIsOpen: (open: boolean) => void;
   toggleOpen: () => void;
   messages: ChatMessageItem[];
-  sendMessage: (text: string) => Promise<void>;
+  sendMessage: (text: string, contactPhone?: string, contactName?: string) => Promise<void>;
   retryLastMessage: () => Promise<void>;
   isTyping: boolean;
   role: 'teacher' | 'parent' | 'guest';
@@ -31,14 +33,24 @@ interface ChatContextType {
   clearHistory: () => void;
 }
 
-const STORAGE_KEY = 'yordamchi_ai_chat_history';
+const STORAGE_KEY = 'yordamchi_support_chat_history';
+const SESSION_KEY = 'yordamchi_support_session_id';
+
+function getOrCreateSessionId(): string {
+  let sid = localStorage.getItem(SESSION_KEY);
+  if (!sid) {
+    sid = 'sess_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+    localStorage.setItem(SESSION_KEY, sid);
+  }
+  return sid;
+}
 
 const INITIAL_MESSAGES: Record<'teacher' | 'parent' | 'guest', ChatMessageItem[]> = {
   teacher: [
     {
       id: 'm-init-teacher',
       sender: 'ai',
-      text: "Salom, hurmatli o'qituvchi! Men Yordamchi med pedagogik AI yordamchisiman. O'quvchilar holatini yozish, ota-onalar bilan muloqot yoki metodik tavsiyalar bo'yicha qanday yordam bera olaman?",
+      text: "Assalomu alaykum, hurmatli o'qituvchi! Platforma yoki metodika bo'yicha savollaringiz bo'lsa yozing — administratorlarimiz sizga yordam berishadi.",
       timestamp: new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }),
     },
   ],
@@ -46,7 +58,7 @@ const INITIAL_MESSAGES: Record<'teacher' | 'parent' | 'guest', ChatMessageItem[]
     {
       id: 'm-init-parent',
       sender: 'ai',
-      text: "Salom, aziz ota-ona! Men Yordamchi med sun'iy intellekt maslahatchisiman. Farzandingiz tarbiyasi, kunlik tahlillar, sensor mashqlar va rivojlantirish bo'yicha savollaringizga javob berishga tayyorman.",
+      text: "Assalomu alaykum, aziz ota-ona! Yordamchi med platformasi, maktab yoki farzandingiz bo'yicha savollaringiz bormi? Savolingizni yozing, admin tez orada javob qaytaradi.",
       timestamp: new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }),
     },
   ],
@@ -54,7 +66,7 @@ const INITIAL_MESSAGES: Record<'teacher' | 'parent' | 'guest', ChatMessageItem[]
     {
       id: 'm-init-guest',
       sender: 'ai',
-      text: "Salom! Yordamchi med platformasiga xush kelibsiz. Maxsus ta'lim, Daun sindromi va autizmli bolalar rivojlanishi haqida qanday savollaringiz bor?",
+      text: "Assalomu alaykum! Yordamchi med platformasiga xush kelibsiz. Qanday savollaringiz yoki takliflaringiz bor? Yozib qoldiring, administratorimiz darhol ko'rib chiqadi.",
       timestamp: new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }),
     },
   ],
@@ -64,10 +76,12 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [role, setRole] = useState<'teacher' | 'parent' | 'guest'>('parent');
+  const [role, setRole] = useState<'teacher' | 'parent' | 'guest'>('guest');
   const [currentPage, setCurrentPage] = useState('/');
   const [isTyping, setIsTyping] = useState(false);
   const [lastUserMessage, setLastUserMessage] = useState<string>('');
+
+  const sessionId = getOrCreateSessionId();
 
   const [messages, setMessages] = useState<ChatMessageItem[]>(() => {
     try {
@@ -79,7 +93,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (e) {
       console.warn('Failed to load chat history', e);
     }
-    return INITIAL_MESSAGES.parent;
+    return INITIAL_MESSAGES.guest;
   });
 
   // Save messages to LocalStorage
@@ -90,6 +104,58 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('Failed to save chat history', e);
     }
   }, [messages]);
+
+  // Sync / Poll inquiries from backend to check if admin replied
+  const syncWithBackend = useCallback(async () => {
+    try {
+      const res = await axiosInstance.get<{ success: boolean; data: any[] }>(
+        `/support/my-inquiries?sessionId=${sessionId}`
+      );
+      if (res.data.success && Array.isArray(res.data.data)) {
+        const inquiries = res.data.data;
+        
+        // Check for inquiries with admin_reply
+        setMessages((prev) => {
+          const newMessages = [...prev];
+          let updated = false;
+
+          for (const inq of inquiries) {
+            if (inq.admin_reply) {
+              const replyId = `admin-reply-${inq.id}`;
+              const alreadyExists = newMessages.some((m) => m.id === replyId);
+              if (!alreadyExists) {
+                newMessages.push({
+                  id: replyId,
+                  sender: 'ai',
+                  isAdminReply: true,
+                  senderLabel: 'Super-Admin',
+                  text: inq.admin_reply,
+                  timestamp: new Date(inq.replied_at || inq.updated_at).toLocaleTimeString('uz-UZ', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }),
+                });
+                updated = true;
+              }
+            }
+          }
+
+          return updated ? newMessages : prev;
+        });
+      }
+    } catch (err) {
+      // Ignore background sync error silently
+    }
+  }, [sessionId]);
+
+  // Periodic polling when chat is open
+  useEffect(() => {
+    if (isOpen) {
+      void syncWithBackend();
+      const interval = setInterval(syncWithBackend, 4000);
+      return () => clearInterval(interval);
+    }
+  }, [isOpen, syncWithBackend]);
 
   const toggleOpen = () => setIsOpen((prev) => !prev);
 
@@ -103,7 +169,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setMessages(initial);
   };
 
-  const executeSend = async (textToSend: string) => {
+  const executeSend = async (textToSend: string, contactPhone?: string, contactName?: string) => {
     if (!textToSend.trim() || isTyping) return;
 
     setLastUserMessage(textToSend);
@@ -119,57 +185,54 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsTyping(true);
 
     try {
-      const chatHistory = messages.map((m) => ({
-        role: m.sender === 'user' ? 'user' : 'model',
-        parts: [{ text: m.text }],
-      }));
-
-      const reply = await sendChatMessage({
-        message: textToSend,
-        history: chatHistory,
-      });
-      let actionLink;
-
-      // Smart contextual links
-      const lower = textToSend.toLowerCase();
-      if (lower.includes('hisobot') || lower.includes('grafik') || lower.includes('tahlil')) {
-        actionLink = {
-          label: role === 'parent' ? "Hisobotlar sahifasiga o'tish →" : "Sinf statistikasini ko'rish →",
-          url: role === 'parent' ? '/parent/reports' : '/teacher/class',
-        };
-      } else if (lower.includes('bog\'lan') || lower.includes('telefon') || lower.includes('maktab')) {
-        actionLink = {
-          label: "Maktabga qo'ng'iroq qilish",
-          url: 'tel:+998712765432',
-        };
+      // Get logged in user name if available
+      let sender = contactName;
+      let phone = contactPhone;
+      const stored = localStorage.getItem('yordamchi_auth_user');
+      if (stored) {
+        try {
+          const u = JSON.parse(stored);
+          if (u.displayName) sender = u.displayName;
+          if (u.phone) phone = u.phone;
+        } catch {}
       }
 
-      const aiMsg: ChatMessageItem = {
-        id: `ai-${Date.now()}`,
-        sender: 'ai',
-        text: reply || "Tushundim. Farzandingiz bilan uydagi sensor va motorika mashqlarini bajarishni tavsiya etaman.",
-        timestamp: new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }),
-        actionLink,
-      };
+      // Send inquiry to backend database for Super Admin
+      await axiosInstance.post('/support/send', {
+        sessionId,
+        senderName: sender || 'Sayt foydalanuvchisi',
+        senderPhone: phone || null,
+        role,
+        message: textToSend,
+      });
 
-      setMessages((prev) => [...prev, aiMsg]);
+      // Show immediate acknowledgment
+      setTimeout(() => {
+        const ackMsg: ChatMessageItem = {
+          id: `ack-${Date.now()}`,
+          sender: 'ai',
+          text: "Savolingiz qabul qilindi va Super-Admin panelga yetkazildi! Administratorimiz tez orada shu yerda javob qaytaradi.",
+          timestamp: new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages((prev) => [...prev, ackMsg]);
+        setIsTyping(false);
+      }, 500);
     } catch (err) {
-      console.error('AI Chat Error:', err);
+      console.error('Support Send Error:', err);
       const errorMsg: ChatMessageItem = {
         id: `err-${Date.now()}`,
         sender: 'ai',
-        text: "Hozircha javob bera olmadim. Tarmoq aloqasini tekshirib, qaytadan urinib ko'ring.",
+        text: "Xabarni yetkazishda xatolik yuz berdi. Iltimos qayta urinib ko'ring.",
         timestamp: new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }),
         isError: true,
       };
       setMessages((prev) => [...prev, errorMsg]);
-    } finally {
       setIsTyping(false);
     }
   };
 
-  const sendMessage = async (text: string) => {
-    await executeSend(text);
+  const sendMessage = async (text: string, contactPhone?: string, contactName?: string) => {
+    await executeSend(text, contactPhone, contactName);
   };
 
   const retryLastMessage = async () => {
